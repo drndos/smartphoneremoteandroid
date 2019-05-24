@@ -2,15 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.blenderremote">
 
-
     <uses-permission android:name="android.permission.CAMERA" />
-
-    <!-- Indicates that app requires ARCore ("AR Required"). Ensures app is only
+    <!--
+ Indicates that app requires ARCore ("AR Required"). Ensures app is only
          visible in the Google Play Store on devices that support ARCore.
     -->
     <uses-feature android:name="android.hardware.camera.ar" />
-
-
 
     <application
         android:allowBackup="true"
@@ -19,21 +16,24 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".DisplayMessageActivity"></activity>
-        <activity android:name=".MainActivity"
-                  android:parentActivityName=".MainActivity">
+        <activity android:name=".CameraTrackingActivity"></activity>
+        <activity android:name=".DisplayMessageActivity" />
+        <activity
+            android:name=".MainActivity"
+            android:parentActivityName=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!-- Indicates that app requires ARCore ("AR Required"). Causes Google
+        <!--
+ Indicates that app requires ARCore ("AR Required"). Causes Google
          Play Store to download and install ARCore when the app is installed.
-    -->
-        <meta-data android:name="com.google.ar.core" android:value="required" />
-
+        -->
+        <meta-data
+            android:name="com.google.ar.core"
+            android:value="required" />
     </application>
 
 </manifest>
