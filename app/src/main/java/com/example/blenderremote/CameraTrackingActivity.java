@@ -15,6 +15,8 @@ import com.google.ar.core.Anchor;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.sceneform.AnchorNode;
+import com.google.ar.sceneform.ArSceneView;
+import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.TransformableNode;
@@ -54,6 +56,11 @@ public class CameraTrackingActivity extends AppCompatActivity {
                         toast.show();
                         return null;
                     });
+        arFragment.getArSceneView().setLightEstimationEnabled(true);
+        arFragment.getArSceneView().getPlaneRenderer().setEnabled(true);
+
+        ArSceneView sceneView = arFragment.getArSceneView();
+        Scene scene = sceneView.getScene();
 
         arFragment.setOnTapArPlaneListener(
                 (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
