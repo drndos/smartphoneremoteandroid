@@ -4,16 +4,29 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".CameraTrackingActivity" >
+    tools:context=".CameraTrackingActivity">
+
+    <Button
+        android:id="@+id/send_test"
+        android:layout_width="130dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:text="@string/button_send_position"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <FrameLayout
+        android:id="@+id/frameLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <fragment
             android:id="@+id/ux_fragment"
-            android:name="com.google.ar.sceneform.ux.ArFragment"
+            android:name="com.example.blenderremote.CameraTrackingFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
+
     </FrameLayout>
+
 </android.support.constraint.ConstraintLayout>

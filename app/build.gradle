@@ -38,6 +38,8 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation 'org.zeromq:jeromq:0.5.1'
     implementation "com.google.ar.sceneform.ux:sceneform-ux:1.9.0"
+    implementation 'com.android.support:design:28.0.0'
+    implementation 'org.msgpack:msgpack-core:0.8.16'
 
 }
 

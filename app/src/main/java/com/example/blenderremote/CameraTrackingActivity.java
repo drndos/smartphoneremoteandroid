@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Toast;
 
 import com.google.ar.core.Anchor;
@@ -21,13 +22,29 @@ import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.TransformableNode;
 
+import org.zeromq.SocketType;
+import org.zeromq.ZContext;
+import org.zeromq.ZMQ;
+
 public class CameraTrackingActivity extends AppCompatActivity {
     private static final String TAG = CameraTrackingActivity.class.getSimpleName();
     private static final double MIN_OPENGL_VERSION = 3.0;
 
-    private ArFragment arFragment;
+    private CameraTrackingFragment arFragment;
     private ModelRenderable andyRenderable;
 
+    private void clientMessageReceived(String messageBody) {
+        System.out.println("toto");
+    }
+
+    private final MessageListenerHandler clientMessageHandler = new MessageListenerHandler(
+            new IMessageListener() {
+                @Override
+                public void messageReceived(String messageBody) {
+                    clientMessageReceived(messageBody);
+                }
+            },
+            Util.MESSAGE_PAYLOAD_KEY);
     @Override
     @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"})
     // CompletableFuture requires api level 24
@@ -40,7 +57,7 @@ public class CameraTrackingActivity extends AppCompatActivity {
         }
 
         setContentView(R.layout.activity_camera_tracking);
-        arFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
+        arFragment = (CameraTrackingFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
 
         // When you build a Renderable, Sceneform loads its resources in the background while returning
         // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
@@ -61,7 +78,6 @@ public class CameraTrackingActivity extends AppCompatActivity {
 
         ArSceneView sceneView = arFragment.getArSceneView();
         Scene scene = sceneView.getScene();
-
         arFragment.setOnTapArPlaneListener(
                 (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
                     if (andyRenderable == null) {
@@ -79,6 +95,16 @@ public class CameraTrackingActivity extends AppCompatActivity {
                     andy.setRenderable(andyRenderable);
                     andy.select();
                 });
+
+        findViewById(R.id.send_test).setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        new SendMessageTask(clientMessageHandler).execute("toto");
+                    }
+                }
+        );
+
     }
 
     /**
