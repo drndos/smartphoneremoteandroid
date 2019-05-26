@@ -14,10 +14,12 @@ import android.widget.Toast;
 
 import com.example.blenderremote.R;
 import com.google.ar.core.Anchor;
+import com.google.ar.core.Frame;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.ArSceneView;
+import com.google.ar.sceneform.FrameTime;
 import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.ux.TransformableNode;
@@ -41,6 +43,7 @@ public class CameraTrackingActivity extends AppCompatActivity {
                 }
             },
             Util.MESSAGE_PAYLOAD_KEY);
+
     @Override
     @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"})
     // CompletableFuture requires api level 24
@@ -74,6 +77,8 @@ public class CameraTrackingActivity extends AppCompatActivity {
 
         ArSceneView sceneView = arFragment.getArSceneView();
         Scene scene = sceneView.getScene();
+        scene.addOnUpdateListener(this::onUpdateFrame);
+
         arFragment.setOnTapArPlaneListener(
                 (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
                     if (andyRenderable == null) {
@@ -103,6 +108,12 @@ public class CameraTrackingActivity extends AppCompatActivity {
 
     }
 
+    private void onUpdateFrame(FrameTime frameTime){
+        Frame frame = arFragment.getArSceneView().getArFrame();
+
+        float[] rotation = frame.getCamera().getPose().getRotationQuaternion();
+        Log.i("Test",Float.toString(rotation[1]));
+    }
     /**
      * Returns false and displays an error message if Sceneform can not run, true if Sceneform can run
      * on this device.
