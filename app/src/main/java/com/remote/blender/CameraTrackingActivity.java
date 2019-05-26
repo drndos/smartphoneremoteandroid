@@ -24,6 +24,9 @@ import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.ux.TransformableNode;
 
+import org.msgpack.core.MessageBufferPacker;
+import org.msgpack.core.MessagePack;
+
 public class CameraTrackingActivity extends AppCompatActivity {
     private static final String TAG = CameraTrackingActivity.class.getSimpleName();
     private static final double MIN_OPENGL_VERSION = 3.0;
@@ -113,6 +116,7 @@ public class CameraTrackingActivity extends AppCompatActivity {
 
         float[] rotation = frame.getCamera().getPose().getRotationQuaternion();
         Log.i("Test",Float.toString(rotation[1]));
+        MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
     }
     /**
      * Returns false and displays an error message if Sceneform can not run, true if Sceneform can run

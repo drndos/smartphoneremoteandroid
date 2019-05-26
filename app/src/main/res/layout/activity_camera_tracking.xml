@@ -6,16 +6,6 @@
     android:layout_height="match_parent"
     tools:context="com.remote.blender.CameraTrackingActivity">
 
-    <Button
-        android:id="@+id/send_test"
-        android:layout_width="130dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:text="@string/button_send_position"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <FrameLayout
         android:id="@+id/frameLayout"
         android:layout_width="match_parent"
@@ -28,5 +18,15 @@
             android:layout_height="match_parent" />
 
     </FrameLayout>
+
+    <Button
+        android:id="@+id/send_test"
+        android:layout_width="130dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:text="@string/button_send_position"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </android.support.constraint.ConstraintLayout>
