@@ -1,4 +1,4 @@
-package com.example.blenderremote;
+package com.remote.blender;
 
 import com.google.ar.sceneform.ux.ArFragment;
 

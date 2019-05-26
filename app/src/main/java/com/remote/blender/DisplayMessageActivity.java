@@ -1,9 +1,11 @@
-package com.example.blenderremote;
+package com.remote.blender;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.TextView;
+
+import com.example.blenderremote.R;
 
 public class DisplayMessageActivity extends AppCompatActivity {
 

@@ -1,4 +1,4 @@
-package com.example.blenderremote;
+package com.remote.blender;
 
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -12,6 +12,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
+import com.example.blenderremote.R;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
@@ -19,12 +20,7 @@ import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.rendering.ModelRenderable;
-import com.google.ar.sceneform.ux.ArFragment;
 import com.google.ar.sceneform.ux.TransformableNode;
-
-import org.zeromq.SocketType;
-import org.zeromq.ZContext;
-import org.zeromq.ZMQ;
 
 public class CameraTrackingActivity extends AppCompatActivity {
     private static final String TAG = CameraTrackingActivity.class.getSimpleName();

@@ -17,14 +17,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".CameraTrackingActivity"
-            android:parentActivityName=".MainActivity">
+        <activity android:name="com.remote.blender.CameraTrackingActivity"
+            android:parentActivityName="com.remote.blender.MainActivity">
 
         </activity>
-        <activity android:name=".DisplayMessageActivity" />
+        <activity android:name="com.remote.blender.DisplayMessageActivity" />
         <activity
-            android:name=".MainActivity"
-            android:parentActivityName=".MainActivity">
+            android:name="com.remote.blender.MainActivity"
+            android:parentActivityName="com.remote.blender.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

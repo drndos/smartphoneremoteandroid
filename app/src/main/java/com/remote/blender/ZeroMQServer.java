@@ -1,4 +1,4 @@
-package com.example.blenderremote;
+package com.remote.blender;
 import android.os.Handler;
 
 import org.zeromq.ZMQ;

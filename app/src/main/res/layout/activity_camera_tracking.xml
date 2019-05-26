@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".CameraTrackingActivity">
+    tools:context="com.remote.blender.CameraTrackingActivity">
 
     <Button
         android:id="@+id/send_test"
@@ -23,7 +23,7 @@
 
         <fragment
             android:id="@+id/ux_fragment"
-            android:name="com.example.blenderremote.CameraTrackingFragment"
+            android:name="com.remote.blender.CameraTrackingFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
