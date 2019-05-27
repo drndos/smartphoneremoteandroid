@@ -9,7 +9,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
-import android.view.View;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import com.example.blenderremote.R;
@@ -27,12 +28,15 @@ import com.google.ar.sceneform.ux.TransformableNode;
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
 
+import java.io.IOException;
+
 public class CameraTrackingActivity extends AppCompatActivity {
     private static final String TAG = CameraTrackingActivity.class.getSimpleName();
     private static final double MIN_OPENGL_VERSION = 3.0;
 
     private CameraTrackingFragment arFragment;
     private ModelRenderable andyRenderable;
+    private boolean send_position;
 
     private void clientMessageReceived(String messageBody) {
         System.out.println("toto");
@@ -60,6 +64,18 @@ public class CameraTrackingActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_camera_tracking);
         arFragment = (CameraTrackingFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
+
+        // UI event setup
+        Switch send_position_switch = (Switch) findViewById(R.id.send_position);
+
+        send_position_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                send_position = isChecked;
+            }
+        });
+
+        //3d scene setup
 
         // When you build a Renderable, Sceneform loads its resources in the background while returning
         // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
@@ -100,23 +116,23 @@ public class CameraTrackingActivity extends AppCompatActivity {
                     andy.select();
                 });
 
-        findViewById(R.id.send_test).setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        new SendMessageTask(clientMessageHandler).execute("toto");
-                    }
-                }
-        );
-
     }
 
     private void onUpdateFrame(FrameTime frameTime){
-        Frame frame = arFragment.getArSceneView().getArFrame();
 
-        float[] rotation = frame.getCamera().getPose().getRotationQuaternion();
-        Log.i("Test",Float.toString(rotation[1]));
-        MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
+        if(send_position){
+            Frame frame = arFragment.getArSceneView().getArFrame();
+
+            float[] rotation = frame.getCamera().getPose().getRotationQuaternion();
+
+            try {
+                new SendMessageTask(clientMessageHandler).execute(Util.packFloatArray(rotation));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+
     }
     /**
      * Returns false and displays an error message if Sceneform can not run, true if Sceneform can run

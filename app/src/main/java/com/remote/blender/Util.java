@@ -3,7 +3,12 @@ package com.remote.blender;
 import android.os.Handler;
 import android.os.Bundle;
 import android.os.Message;
- 
+
+import org.msgpack.core.MessageBufferPacker;
+import org.msgpack.core.MessagePack;
+
+import java.io.IOException;
+
 public class Util {
 	public static final String MESSAGE_PAYLOAD_KEY = "jeromq-service-payload";
 	
@@ -33,5 +38,15 @@ public class Util {
 	      b.putString(MESSAGE_PAYLOAD_KEY, msg);
 	      m.setData(b);
 	      return ;      
+	}
+
+	public static byte[] packFloatArray(float[] rotation) throws IOException {
+		MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
+		packer.packArrayHeader(rotation.length);
+		for (float v : rotation) {
+			packer.packFloat(v);
+		}
+
+		return packer.toByteArray();
 	}
 }
