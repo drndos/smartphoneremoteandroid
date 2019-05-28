@@ -10,8 +10,9 @@ import android.util.Log;
 
 import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
+import org.zeromq.ZMsg;
 
-public class SendMessageTask extends AsyncTask<byte[], Void, String> {
+public class SendMessageTask extends AsyncTask<ZMsg, Void, String> {
     private final Handler uiThreadHandler;
 
     public static final String MESSAGE_PAYLOAD_KEY = "jeromq-service-payload";
@@ -33,19 +34,18 @@ public class SendMessageTask extends AsyncTask<byte[], Void, String> {
 //    };
 
     @Override
-    protected String doInBackground(byte[]... params) {
+    protected String doInBackground(ZMsg... params) {
         ZMQ.Context context = ZMQ.context(1);
-        ZMQ.Socket socket = context.socket(SocketType.REQ);
+        ZMQ.Socket socket = context.socket(SocketType.PUSH);
         socket.connect("tcp://192.168.0.10:5556");
-
-        socket.send(params[0], 0);
-        String result = new String(socket.recv(0));
+        params[0].send(socket);
+        Log.i("Net","pushing data");
 
 
         socket.close();
         context.term();
 
-        return result;
+        return "Done";
     }
 
 //    @Override

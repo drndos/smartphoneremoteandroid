@@ -2,5 +2,5 @@
     <string name="app_name">BlenderRemote</string>
     <string name="edit_message">Enter a message</string>
     <string name="button_send">Connect</string>
-    <string name="button_send_position">send_position</string>
+    <string name="button_send_position">stream camera</string>
 </resources>

@@ -3,11 +3,13 @@ package com.remote.blender;
 import android.os.Handler;
 import android.os.Bundle;
 import android.os.Message;
+import android.util.Log;
 
 import com.google.ar.core.Camera;
 
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
+import org.zeromq.ZMsg;
 
 import java.io.IOException;
 
@@ -42,25 +44,33 @@ public class Util {
 	      return ;      
 	}
 
-	public static byte[] packCamera(Camera camera) throws IOException {
+	public static ZMsg packCamera(Camera camera) throws IOException {
+		ZMsg message_buffer = new ZMsg();
 		MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
-		packer.packString("CAMERA");
 
-//		float[] rotation = camera.getPose().getRotationQuaternion();
-//		float[] translation = camera.getPose().getTranslation();
-//
-//		packer.packArrayHeader(rotation.length);
-//		for (float v : rotation) {
-//			packer.packFloat(v);
-//		}
-//
-//		packer.packArrayHeader(translation.length);
-//		for (float v : translation) {
-//			packer.packFloat(v);
-//		}
+		//HEADER
+		message_buffer.add("CAMERA");
 
 
-		return packer.toByteArray();
+		float[] rotation = camera.getPose().getRotationQuaternion();
+
+
+		packer.packArrayHeader(rotation.length);
+		for (float v : rotation) {
+			packer.packFloat(v);
+		}
+		message_buffer.add(packer.toByteArray());
+		packer.clear();
+
+		float[] translation = camera.getPose().getTranslation();
+		packer.packArrayHeader(translation.length);
+		for (float v : translation) {
+			packer.packFloat(v);
+		}
+		message_buffer.add(packer.toByteArray());
+
+		packer.close();
+		return message_buffer;
 
 	}
 	public static byte[] packFloatArray(float[] rotation) throws IOException {

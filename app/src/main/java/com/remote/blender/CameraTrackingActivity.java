@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.os.Build;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -27,6 +28,8 @@ import com.google.ar.sceneform.ux.TransformableNode;
 
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
+import org.zeromq.SocketType;
+import org.zeromq.ZMQ;
 
 import java.io.IOException;
 
@@ -37,6 +40,8 @@ public class CameraTrackingActivity extends AppCompatActivity {
     private CameraTrackingFragment arFragment;
     private ModelRenderable andyRenderable;
     private boolean send_position;
+    private ZMQ.Context ctx;
+    private ZMQ.Socket push_socket;
 
     private void clientMessageReceived(String messageBody) {
         System.out.println("toto");
@@ -51,6 +56,17 @@ public class CameraTrackingActivity extends AppCompatActivity {
             },
             Util.MESSAGE_PAYLOAD_KEY);
 
+//    Handler handler=new Handler();
+//    private Runnable runnable = new Runnable() {
+//        @Override
+//        public void run() {
+//            /* do what you need to do */
+//            Log.i("ping","ping");
+//            /* and here comes the "trick" */
+//            handler.postDelayed(this, 100);
+//        }
+//    };
+
     @Override
     @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"})
     // CompletableFuture requires api level 24
@@ -64,6 +80,11 @@ public class CameraTrackingActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_camera_tracking);
         arFragment = (CameraTrackingFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
+        ctx = ZMQ.context(1);
+        push_socket = ctx.socket(SocketType.PUSH);
+        push_socket.connect("tcp://192.168.0.10:5556");
+        //Start to ping the server
+//        handler.postDelayed(runnable,2000);
 
         // UI event setup
         Switch send_position_switch = (Switch) findViewById(R.id.send_position);
@@ -121,10 +142,11 @@ public class CameraTrackingActivity extends AppCompatActivity {
         if(send_position){
             Frame frame = arFragment.getArSceneView().getArFrame();
 
-            float[] rotation = frame.getCamera().getPose().getRotationQuaternion();
-
             try {
-                new SendMessageTask(clientMessageHandler).execute(Util.packCamera(frame.getCamera()));
+//                new SendMessageTask(clientMessageHandler).execute(Util.packCamera(frame.getCamera()));
+
+                Util.packCamera(frame.getCamera()).send(push_socket);
+                Log.i("Net","Start to send");
             } catch (IOException e) {
                 e.printStackTrace();
             }
