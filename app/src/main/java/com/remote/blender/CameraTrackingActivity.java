@@ -91,8 +91,6 @@ public class CameraTrackingActivity extends AppCompatActivity {
                         toast.show();
                         return null;
                     });
-        arFragment.getArSceneView().setLightEstimationEnabled(true);
-        arFragment.getArSceneView().getPlaneRenderer().setEnabled(true);
 
         ArSceneView sceneView = arFragment.getArSceneView();
         Scene scene = sceneView.getScene();
@@ -126,7 +124,7 @@ public class CameraTrackingActivity extends AppCompatActivity {
             float[] rotation = frame.getCamera().getPose().getRotationQuaternion();
 
             try {
-                new SendMessageTask(clientMessageHandler).execute(Util.packFloatArray(rotation));
+                new SendMessageTask(clientMessageHandler).execute(Util.packCamera(frame.getCamera()));
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -4,6 +4,8 @@ import android.os.Handler;
 import android.os.Bundle;
 import android.os.Message;
 
+import com.google.ar.core.Camera;
+
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
 
@@ -40,12 +42,35 @@ public class Util {
 	      return ;      
 	}
 
+	public static byte[] packCamera(Camera camera) throws IOException {
+		MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
+		packer.packString("CAMERA");
+
+//		float[] rotation = camera.getPose().getRotationQuaternion();
+//		float[] translation = camera.getPose().getTranslation();
+//
+//		packer.packArrayHeader(rotation.length);
+//		for (float v : rotation) {
+//			packer.packFloat(v);
+//		}
+//
+//		packer.packArrayHeader(translation.length);
+//		for (float v : translation) {
+//			packer.packFloat(v);
+//		}
+
+
+		return packer.toByteArray();
+
+	}
 	public static byte[] packFloatArray(float[] rotation) throws IOException {
 		MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
 		packer.packArrayHeader(rotation.length);
 		for (float v : rotation) {
 			packer.packFloat(v);
 		}
+
+
 
 		return packer.toByteArray();
 	}

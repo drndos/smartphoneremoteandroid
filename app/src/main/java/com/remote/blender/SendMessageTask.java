@@ -36,7 +36,7 @@ public class SendMessageTask extends AsyncTask<byte[], Void, String> {
     protected String doInBackground(byte[]... params) {
         ZMQ.Context context = ZMQ.context(1);
         ZMQ.Socket socket = context.socket(SocketType.REQ);
-        socket.connect("tcp://192.168.0.10:5555");
+        socket.connect("tcp://192.168.0.10:5556");
 
         socket.send(params[0], 0);
         String result = new String(socket.recv(0));
