@@ -52,7 +52,7 @@ public class Util {
 		message_buffer.add("CAMERA");
 
 
-		float[] rotation = camera.getPose().getRotationQuaternion();
+		float[] rotation = camera.getDisplayOrientedPose().getRotationQuaternion();
 
 
 		packer.packArrayHeader(rotation.length);
@@ -62,7 +62,7 @@ public class Util {
 		message_buffer.add(packer.toByteArray());
 		packer.clear();
 
-		float[] translation = camera.getPose().getTranslation();
+		float[] translation = camera.getDisplayOrientedPose().getTranslation();
 		packer.packArrayHeader(translation.length);
 		for (float v : translation) {
 			packer.packFloat(v);
