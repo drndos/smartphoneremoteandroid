@@ -19,17 +19,17 @@
         android:theme="@style/AppTheme">
         <activity android:name="com.remote.blender.CameraTrackingActivity"
             android:parentActivityName="com.remote.blender.MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity android:name="com.remote.blender.DisplayMessageActivity" />
         <activity
             android:name="com.remote.blender.MainActivity"
             android:parentActivityName="com.remote.blender.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
         <!--
  Indicates that app requires ARCore ("AR Required"). Causes Google

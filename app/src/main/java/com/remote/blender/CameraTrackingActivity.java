@@ -3,6 +3,7 @@ package com.remote.blender;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -77,12 +78,16 @@ public class CameraTrackingActivity extends AppCompatActivity {
         if (!checkIsSupportedDeviceOrFinish(this)) {
             return;
         }
+        // Get the previous activity message
+        Intent intent = getIntent();
+        String server_ip = intent.getStringExtra(MainActivity.EXTRA_MESSAGE);
 
         setContentView(R.layout.activity_camera_tracking);
         arFragment = (CameraTrackingFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
         ctx = ZMQ.context(1);
         push_socket = ctx.socket(SocketType.PUSH);
-        push_socket.connect("tcp://192.168.0.10:5556");
+
+        push_socket.connect(String.format("tcp://%s:%d",server_ip,5556));
         //Start to ping the server
 //        handler.postDelayed(runnable,2000);
 
