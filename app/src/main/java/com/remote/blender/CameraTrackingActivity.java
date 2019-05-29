@@ -151,7 +151,7 @@ public class CameraTrackingActivity extends AppCompatActivity {
 //                new SendMessageTask(clientMessageHandler).execute(Util.packCamera(frame.getCamera()));
 
                 Util.packCamera(frame.getCamera()).send(push_socket);
-                Log.i("Net","Start to send");
+
             } catch (IOException e) {
                 e.printStackTrace();
             }

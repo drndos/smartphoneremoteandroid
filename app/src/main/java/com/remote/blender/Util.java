@@ -6,6 +6,7 @@ import android.os.Message;
 import android.util.Log;
 
 import com.google.ar.core.Camera;
+import com.google.ar.core.Pose;
 
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
@@ -48,11 +49,16 @@ public class Util {
 		ZMsg message_buffer = new ZMsg();
 		MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
 
+		float sqrtHalf = (float) Math.sqrt(0.5f);
 		//HEADER
 		message_buffer.add("CAMERA");
 
-
-		float[] rotation = camera.getDisplayOrientedPose().getRotationQuaternion();
+		float[] rotation = {0,0,0,0};
+		float[] raw_rotation = camera.getDisplayOrientedPose().getRotationQuaternion();
+		rotation[0] = -raw_rotation[2];
+		rotation[1] = raw_rotation[1];
+		rotation[2] = raw_rotation[0];
+		rotation[3] = raw_rotation[3];
 
 
 		packer.packArrayHeader(rotation.length);
@@ -62,7 +68,12 @@ public class Util {
 		message_buffer.add(packer.toByteArray());
 		packer.clear();
 
-		float[] translation = camera.getDisplayOrientedPose().getTranslation();
+		float[] translation = {0,0,0};
+		float[] raw_translation = camera.getDisplayOrientedPose().getTranslation();
+		translation[0] = raw_translation[0]*10;
+		translation[1] = raw_translation[2]*10;
+		translation[2] = raw_translation[1]*10;
+
 		packer.packArrayHeader(translation.length);
 		for (float v : translation) {
 			packer.packFloat(v);
