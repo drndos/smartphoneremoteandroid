@@ -55,10 +55,10 @@ public class Util {
 
 		float[] rotation = {0,0,0,0};
 		float[] raw_rotation = camera.getDisplayOrientedPose().getRotationQuaternion();
-		rotation[0] = -raw_rotation[2];
-		rotation[1] = raw_rotation[1];
-		rotation[2] = raw_rotation[0];
-		rotation[3] = raw_rotation[3];
+		rotation[0] = raw_rotation[3];
+		rotation[1] = -raw_rotation[0];
+		rotation[2] = raw_rotation[1];
+		rotation[3] = -raw_rotation[2];
 
 
 		packer.packArrayHeader(rotation.length);
