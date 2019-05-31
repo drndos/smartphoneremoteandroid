@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, CameraTrackingActivity.class);
         EditText editText = (EditText) findViewById(R.id.editText);
 
-        String server_address = String.format("tcp://%s:%d",editText.getText().toString(),5555);
+        String server_address = String.format("tcp://%s:%d",editText.getText().toString(),5557);
         ZMQ.Context ctx = ZMQ.context(1);
         ZMQ.Socket ping = ctx.socket(SocketType.REQ);
         Log.i("Net",server_address);

@@ -56,9 +56,9 @@ public class Util {
 		float[] rotation = {0,0,0,0};
 		float[] raw_rotation = camera.getDisplayOrientedPose().getRotationQuaternion();
 		rotation[0] = raw_rotation[3];
-		rotation[1] = -raw_rotation[0];
+		rotation[1] = raw_rotation[0];
 		rotation[2] = raw_rotation[1];
-		rotation[3] = -raw_rotation[2];
+		rotation[3] = raw_rotation[2];
 
 
 		packer.packArrayHeader(rotation.length);
@@ -71,7 +71,7 @@ public class Util {
 		float[] translation = {0,0,0};
 		float[] raw_translation = camera.getDisplayOrientedPose().getTranslation();
 		translation[0] = raw_translation[0]*10;
-		translation[1] = raw_translation[2]*10;
+		translation[1] = -raw_translation[2]*10;
 		translation[2] = raw_translation[1]*10;
 
 		packer.packArrayHeader(translation.length);

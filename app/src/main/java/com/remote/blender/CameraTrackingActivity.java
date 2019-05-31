@@ -17,9 +17,11 @@ import android.widget.Toast;
 
 import com.example.blenderremote.R;
 import com.google.ar.core.Anchor;
+import com.google.ar.core.Camera;
 import com.google.ar.core.Frame;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
+import com.google.ar.core.TrackingState;
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.FrameTime;
@@ -34,7 +36,8 @@ import org.zeromq.ZMQ;
 
 import java.io.IOException;
 
-public class CameraTrackingActivity extends AppCompatActivity {
+public class CameraTrackingActivity extends AppCompatActivity
+        implements Scene.OnUpdateListener {
     private static final String TAG = CameraTrackingActivity.class.getSimpleName();
     private static final double MIN_OPENGL_VERSION = 3.0;
 
@@ -87,7 +90,7 @@ public class CameraTrackingActivity extends AppCompatActivity {
         ctx = ZMQ.context(1);
         push_socket = ctx.socket(SocketType.PUSH);
 
-        push_socket.connect(String.format("tcp://%s:%d",server_ip,5556));
+        push_socket.connect(String.format("tcp://%s:%d",server_ip,5558));
         //Start to ping the server
 //        handler.postDelayed(runnable,2000);
 
@@ -118,9 +121,7 @@ public class CameraTrackingActivity extends AppCompatActivity {
                         return null;
                     });
 
-        ArSceneView sceneView = arFragment.getArSceneView();
-        Scene scene = sceneView.getScene();
-        scene.addOnUpdateListener(this::onUpdateFrame);
+        arFragment.getArSceneView().getScene().addOnUpdateListener(this);
 
         arFragment.setOnTapArPlaneListener(
                 (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
@@ -142,23 +143,23 @@ public class CameraTrackingActivity extends AppCompatActivity {
 
     }
 
-    private void onUpdateFrame(FrameTime frameTime){
 
-        if(send_position){
-            Frame frame = arFragment.getArSceneView().getArFrame();
+    @Override
+    public void onUpdate(FrameTime frameTime) {
+        Camera camera = arFragment.getArSceneView().getArFrame().getCamera();
+        if (camera.getTrackingState() == TrackingState.TRACKING && send_position) {
+                try {
+                    //                new SendMessageTask(clientMessageHandler).execute(Util.packCamera(frame.getCamera()));
 
-            try {
-//                new SendMessageTask(clientMessageHandler).execute(Util.packCamera(frame.getCamera()));
+                    Util.packCamera(camera).send(push_socket);
 
-                Util.packCamera(frame.getCamera()).send(push_socket);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
         }
-
     }
+
     /**
      * Returns false and displays an error message if Sceneform can not run, true if Sceneform can run
      * on this device.
