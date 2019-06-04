@@ -4,6 +4,8 @@
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
     <color name="colorOnline">#1EC005</color>
+    <color name="colorError">#A20000</color>
+    <color name="colorIdle">#003AAE</color>
 </resources>
 
 

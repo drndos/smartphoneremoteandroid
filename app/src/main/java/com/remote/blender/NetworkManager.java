@@ -32,7 +32,7 @@ public class NetworkManager {
         stateHandler = new Handler();
         stateRunnable = new Runnable() {
             public void run() {
-                if (mState == 1){
+                if (mState == STATE_OFFLINE){
                     Log.i("Net","Onpen new connexion");
                     mNetSettings.connect(mAddress);
 

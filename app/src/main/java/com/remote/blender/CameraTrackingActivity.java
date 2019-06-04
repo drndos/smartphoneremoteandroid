@@ -53,7 +53,8 @@ public class CameraTrackingActivity extends AppCompatActivity
 
     // UI vars
     private CameraTrackingFragment arFragment;
-    private ImageButton cameraStream;
+    private ImageButton cameraStreamButton;
+    private ImageButton connectButton;
     private ModelRenderable andyRenderable;
     private LinearLayout connexionPannel;
 
@@ -68,7 +69,16 @@ public class CameraTrackingActivity extends AppCompatActivity
             switch (msg.what){
                 // STATE MESSAGE
                 case 0:
-                    Log.i("Net","Net status: "+Integer.toString((Integer)msg.obj));
+                    switch ((int)msg.obj){
+                        case 0:
+                            setcameraStream(false);
+                            break;
+                        case 1:
+
+                            break;
+                    }
+                    updateConnectButtonStatus((int)msg.obj);
+
                     break;
             }
 
@@ -116,18 +126,42 @@ public class CameraTrackingActivity extends AppCompatActivity
         }
     }
 
-    public void onClickButtonCameraStream(View v)
-    {
-        if(send_position){
+    public void setcameraStream(boolean state){
+        if(state == false){
             send_position = false;
-            cameraStream.setImageResource(R.drawable.round_videocam_off_white_18dp);
-            cameraStream.setBackgroundTintList(v.getResources().getColorStateList(R.color.colorPrimary));
-
+            cameraStreamButton.setImageResource(R.drawable.round_videocam_off_white_18dp);
+            cameraStreamButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimary));
+        }
+        else if(netManager.mState == 1){
+            send_position = true;
+            cameraStreamButton.setImageResource(R.drawable.round_videocam_white_18dp);
+            cameraStreamButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorOnline));
         }
         else{
-            send_position = true;
-            cameraStream.setImageResource(R.drawable.round_videocam_white_18dp);
-            cameraStream.setBackgroundTintList(v.getResources().getColorStateList(R.color.colorOnline));
+            Toast.makeText(CameraTrackingActivity.this,
+                    "Cannot stream the camera !", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public void updateConnectButtonStatus(int status){
+        switch (status){
+            case 0:
+                connectButton.setImageResource(R.drawable.round_cast_white_18dp);
+                connectButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorError));
+                break;
+            case 1:
+                connectButton.setImageResource(R.drawable.round_cast_connected_white_18dp);
+                connectButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorOnline));
+                break;
+        }
+    }
+    public void onClickButtoncameraStreamButton(View v)
+    {
+        if(send_position){
+            setcameraStream(false);
+        }
+        else{
+            setcameraStream(true);
         }
     }
 
@@ -141,24 +175,19 @@ public class CameraTrackingActivity extends AppCompatActivity
         if (!checkIsSupportedDeviceOrFinish(this)) {
             return;
         }
-        // Get the previous activity message
-        String server_ip = "192.168.0.10";
 
         // UI Setup
         setContentView(R.layout.activity_camera_tracking);
         arFragment = (CameraTrackingFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
-        cameraStream = (ImageButton)findViewById(R.id.stream_camera);
-        connexionPannel = findViewById(R.id.connexion_pannel);
+        cameraStreamButton = (ImageButton)findViewById(R.id.stream_camera);
+        connectButton = (ImageButton)findViewById(R.id.connect);
+        
 
         // Net setup
         netManager = new NetworkManager(netHandler);
 
-        //Start to ping the server
-//        handler.postDelayed(runnable,2000);
 
-
-
-        //3d scene setup
+        // ASSETS SETUP
 
         // When you build a Renderable, Sceneform loads its resources in the background while returning
         // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
@@ -175,8 +204,8 @@ public class CameraTrackingActivity extends AppCompatActivity
                         return null;
                     });
 
+        // AR EVENTS
         arFragment.getArSceneView().getScene().addOnUpdateListener(this);
-
         arFragment.setOnTapArPlaneListener(
                 (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
                     if (andyRenderable == null) {
