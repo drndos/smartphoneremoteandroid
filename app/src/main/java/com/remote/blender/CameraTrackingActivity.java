@@ -31,11 +31,16 @@ import com.google.ar.core.Camera;
 import com.google.ar.core.Frame;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
+import com.google.ar.core.Pose;
 import com.google.ar.core.TrackingState;
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.FrameTime;
+import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.Scene;
+import com.google.ar.sceneform.math.Matrix;
+import com.google.ar.sceneform.math.Quaternion;
+import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.ModelRenderable;
 import com.google.ar.sceneform.ux.TransformableNode;
 
@@ -50,6 +55,11 @@ public class CameraTrackingActivity extends AppCompatActivity
         implements Scene.OnUpdateListener {
     private static final String TAG = CameraTrackingActivity.class.getSimpleName();
     private static final double MIN_OPENGL_VERSION = 3.0;
+
+    //AR vars
+    private Anchor sceneAnchor;
+    private AnchorNode sceneNode;
+    private TransformableNode sceneTransform;
 
     // UI vars
     private CameraTrackingFragment arFragment;
@@ -93,13 +103,13 @@ public class CameraTrackingActivity extends AppCompatActivity
     public void showConnexionDialog(){
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder.setCancelable(true);
-        alertDialogBuilder.setTitle("Connexion");
         // Set up the input
         final EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setHint(R.string.button_connect);
         alertDialogBuilder.setView(input);
 
-        alertDialogBuilder.setMessage("Enter server address");
+        alertDialogBuilder.setMessage("Connexion");
         alertDialogBuilder.setPositiveButton("yes",
                 new DialogInterface.OnClickListener() {
                     @Override
@@ -143,6 +153,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         AlertDialog alertDialog = alertDialogBuilder.create();
         alertDialog.show();
     }
+
     public void onClickButtonConnexion(View v)
     {
         if(netManager.mState == 0){
@@ -186,6 +197,7 @@ public class CameraTrackingActivity extends AppCompatActivity
                 break;
         }
     }
+
     public void onClickButtoncameraStreamButton(View v)
     {
         if(send_position){
@@ -243,16 +255,23 @@ public class CameraTrackingActivity extends AppCompatActivity
                         return;
                     }
 
+                    if (sceneAnchor!=null){
+                        sceneAnchor.detach();
+                    }
                     // Create the Anchor.
-                    Anchor anchor = hitResult.createAnchor();
-                    AnchorNode anchorNode = new AnchorNode(anchor);
-                    anchorNode.setParent(arFragment.getArSceneView().getScene());
+                    sceneAnchor = hitResult.createAnchor();
+                    sceneNode = new AnchorNode(sceneAnchor);
+                    sceneNode.setParent(arFragment.getArSceneView().getScene());
 
                     // Create the transformable andy and add it to the anchor.
-                    TransformableNode andy = new TransformableNode(arFragment.getTransformationSystem());
-                    andy.setParent(anchorNode);
-                    andy.setRenderable(andyRenderable);
-                    andy.select();
+
+                    sceneTransform = new TransformableNode(arFragment.getTransformationSystem());
+
+                    sceneTransform.setParent(sceneNode);
+                    sceneTransform.setRenderable(andyRenderable);
+                    sceneTransform.select();
+
+
                 });
 
     }
@@ -260,16 +279,40 @@ public class CameraTrackingActivity extends AppCompatActivity
 
     @Override
     public void onUpdate(FrameTime frameTime) {
-        Camera camera = arFragment.getArSceneView().getArFrame().getCamera();
-        if (camera.getTrackingState() == TrackingState.TRACKING && send_position) {
+       ;
+
+        if(sceneAnchor != null){
+            float[] cameraMatrix = new float[16];
+            Camera camera = arFragment.getArSceneView().getArFrame().getCamera();
+            camera.getPose().toMatrix(cameraMatrix,0);
+
+            Matrix cam = new Matrix(cameraMatrix);
+            Matrix anchor =  sceneTransform.getWorldModelMatrix();
+            Matrix out= new Matrix();
+
+            Matrix.multiply(out,cam,anchor);
+            Log.i("Net",out.toString());
+
+
+            float trans[] =  sceneAnchor.getPose().transformPoint(camera.getPose().getTranslation());
+//            Pose changed = new Pose(trans,camera.getPose().getRotationQuaternion());
+            Vector3 transl = new Vector3();
+            out.decomposeTranslation(transl);
+            Quaternion rot = new Quaternion();
+            out.extractQuaternion(rot);
+
+            Pose changed = new Pose(transl.,rot);
+            if (camera.getTrackingState() == TrackingState.TRACKING && send_position) {
                 try {
-                    netManager.send_data(Util.packCamera(camera));
+                    netManager.send_data(Util.packPose(changed));
 
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
+            }
         }
+
     }
 
     /**
