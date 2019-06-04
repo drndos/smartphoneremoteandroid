@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.InputType;
@@ -61,7 +62,19 @@ public class CameraTrackingActivity extends AppCompatActivity
     private ZMQ.Context ctx;
     private ZMQ.Socket push_socket;
     private NetworkManager netManager;
+    private Handler netHandler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            switch (msg.what){
+                // STATE MESSAGE
+                case 0:
+                    Log.i("Net","Net status: "+Integer.toString((Integer)msg.obj));
+                    break;
+            }
 
+            return false;
+        }
+    });
 
     public void showConnexionDialog(){
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
@@ -77,7 +90,8 @@ public class CameraTrackingActivity extends AppCompatActivity
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface arg0, int arg1) {
-                        Toast.makeText(CameraTrackingActivity.this,"You clicked yesbutton",Toast.LENGTH_LONG).show();
+                        Log.i("Net","Trying to connect");
+                        netManager.connect(input.getText().toString());
                     }
                 });
 
@@ -91,6 +105,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         AlertDialog alertDialog = alertDialogBuilder.create();
         alertDialog.show();
     }
+
     public void onClickButtonConnexion(View v)
     {
         if(netManager != null){
@@ -100,6 +115,7 @@ public class CameraTrackingActivity extends AppCompatActivity
 
         }
     }
+
     public void onClickButtonCameraStream(View v)
     {
         if(send_position){
@@ -128,16 +144,15 @@ public class CameraTrackingActivity extends AppCompatActivity
         // Get the previous activity message
         String server_ip = "192.168.0.10";
 
+        // UI Setup
         setContentView(R.layout.activity_camera_tracking);
         arFragment = (CameraTrackingFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
         cameraStream = (ImageButton)findViewById(R.id.stream_camera);
         connexionPannel = findViewById(R.id.connexion_pannel);
 
+        // Net setup
+        netManager = new NetworkManager(netHandler);
 
-        ctx = ZMQ.context(1);
-        push_socket = ctx.socket(SocketType.PUSH);
-
-        push_socket.connect(String.format("tcp://%s:%d",server_ip,5558));
         //Start to ping the server
 //        handler.postDelayed(runnable,2000);
 
@@ -188,9 +203,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         Camera camera = arFragment.getArSceneView().getArFrame().getCamera();
         if (camera.getTrackingState() == TrackingState.TRACKING && send_position) {
                 try {
-                    //                new SendMessageTask(clientMessageHandler).execute(Util.packCamera(frame.getCamera()));
-
-                    Util.packCamera(camera).send(push_socket);
+                    Util.packCamera(camera).send(netManager.mNetSettings.arChannel);
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -229,38 +242,3 @@ public class CameraTrackingActivity extends AppCompatActivity
     }
 }
 
-//public class MainActivity extends AppCompatActivity {
-//    public static final String EXTRA_MESSAGE = "com.example.blenderremote.MESSAGE";
-//
-//    @Override
-//    protected void onCreate(Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_main);
-//    }
-//
-//    /** Called when the user taps the Send button */
-//    public void sendMessage(View view){
-//        Intent intent = new Intent(this, CameraTrackingActivity.class);
-//        EditText editText = (EditText) findViewById(R.id.editText);
-//
-//        String server_address = String.format("tcp://%s:%d",editText.getText().toString(),5557);
-//        ZMQ.Context ctx = ZMQ.context(1);
-//        ZMQ.Socket ping = ctx.socket(SocketType.REQ);
-//        Log.i("Net",server_address);
-//        ping.connect(server_address);
-//
-//        ZMQ.Poller items = ctx.poller(1);
-//        items.register(ping, ZMQ.Poller.POLLIN);
-//
-//        ping.send("ping");
-//        items.poll(3000);
-//        if(items.pollin(0)) {
-//            byte[] msg = ping.recv();
-//            String message = editText.getText().toString();
-//            intent.putExtra(EXTRA_MESSAGE, message);
-//            startActivity(intent);
-//        }
-//        Log.i("Net","No response to the ping request");
-//
-//    }
-//}
