@@ -235,7 +235,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         // When you build a Renderable, Sceneform loads its resources in the background while returning
         // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
         ModelRenderable.builder()
-            .setSource(this, R.raw.andy)
+            .setSource(this, R.raw.gizmo)
             .build()
             .thenAccept(renderable -> andyRenderable = renderable)
             .exceptionally(
@@ -286,25 +286,32 @@ public class CameraTrackingActivity extends AppCompatActivity
             Camera camera = arFragment.getArSceneView().getArFrame().getCamera();
             camera.getPose().toMatrix(cameraMatrix,0);
 
-            Matrix cam = new Matrix(cameraMatrix);
-            Matrix anchor =  sceneTransform.getWorldModelMatrix();
-            Matrix out= new Matrix();
+//            Matrix cam = new Matrix(cameraMatrix);
+//            Matrix anchor =  sceneTransform.getWorldModelMatrix();
+//            Matrix out= new Matrix();
+//
+//            Matrix.multiply(out,cam,anchor);
 
-            Matrix.multiply(out,cam,anchor);
-            Log.i("Net",out.toString());
 
 
-            float trans[] =  sceneAnchor.getPose().transformPoint(camera.getPose().getTranslation());
-//            Pose changed = new Pose(trans,camera.getPose().getRotationQuaternion());
-            Vector3 transl = new Vector3();
-            out.decomposeTranslation(transl);
-            Quaternion rot = new Quaternion();
-            out.extractQuaternion(rot);
+            float came_trans[] =  camera.getPose().getTranslation();
+            Vector3 camera_translation = new Vector3(came_trans[0],came_trans[1],came_trans[2]) ;
+            Vector3 result = Vector3.cross( camera_translation, sceneTransform.getWorldPosition());
+            double scale =   (sceneTransform.getWorldScale().x * 100) / 1.7;
+            result.scaled((float)scale);
+            Log.i("Net",Float.toString(sceneTransform.getWorldScale().x));
+            float t[] = {result.x,result.y,result.z};
+            Pose output = new Pose(t,camera.getPose().getRotationQuaternion());
 
-            Pose changed = new Pose(transl.,rot);
+//            Vector3 transl = new Vector3();
+//            out.decomposeTranslation(transl);
+//            Quaternion rot = new Quaternion();
+//            out.extractQuaternion(rot);
+
+//            Pose changed = new Pose(transl,rot);
             if (camera.getTrackingState() == TrackingState.TRACKING && send_position) {
                 try {
-                    netManager.send_data(Util.packPose(changed));
+                    netManager.send_data(Util.packPose(output));
 
                 } catch (IOException e) {
                     e.printStackTrace();

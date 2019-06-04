@@ -45,7 +45,8 @@ dependencies {
 
 }
 
-sceneform.asset('sampledata/models/andy.obj',
+
+sceneform.asset('sampledata/models/gizmo.gltf',
         'default',
-        'sampledata/models/andy.sfa',
-        'src/main/assets/andy')
+        'sampledata/models/gizmo.sfa',
+        'src/main/assets/gizmo')

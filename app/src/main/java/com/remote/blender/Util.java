@@ -70,7 +70,7 @@ public class Util {
 		float[] translation = {0,0,0};
 		float[] raw_translation = pose.getTranslation();
 		translation[0] = raw_translation[0];
-		translation[1] = -raw_translation[2];
+		translation[1] = raw_translation[2];
 		translation[2] = raw_translation[1];
 
 		packer.packArrayHeader(translation.length);
