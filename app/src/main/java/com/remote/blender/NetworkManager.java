@@ -7,10 +7,13 @@ import android.os.Message;
 import android.util.Log;
 import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
+import org.zeromq.ZMsg;
 
 public class NetworkManager {
+    private final int STATE_OFFLINE = 0;
+    private final int STATE_ONLINE = 1;
 
-    public int mState = 0;
+    public int mState = STATE_OFFLINE;
     private String mAddress;
 
     private Handler netHandler;
@@ -42,14 +45,14 @@ public class NetworkManager {
                 items.poll(mNetSettings.stateTimout);
                 if(items.pollin(0)) {
                     byte[] msg = mNetSettings.stateChannel.recv();
-                    mState = 0;
+                    mState = STATE_ONLINE;
 
                 }
                 else{
                     mNetSettings.close();
-                    mState = 1;
+                    mState = STATE_OFFLINE;
                 }
-                netHandler.sendMessage( netHandler.obtainMessage(0,mState));
+                netHandler.sendMessage(netHandler.obtainMessage(0,mState));
                 stateHandler.postDelayed(stateRunnable, 4000);
 
             }
@@ -57,26 +60,14 @@ public class NetworkManager {
 
         stateHandler.postDelayed(stateRunnable, 4000);
 
-
-
-
-
-
-//
-//        ZMQ.Poller items = mNetSettings.ctx.poller(1);
-//        items.register(ping, ZMQ.Poller.POLLIN);
-
-//        ping.send("ping");
-//        items.poll(3000);
-//        if(items.pollin(0)) {
-//            byte[] msg = ping.recv();
-//            String message = editText.getText().toString();
-//            intent.putExtra(EXTRA_MESSAGE, message);
-//            startActivity(intent);
-//        }
     }
 
-    public void send(byte[] item){
+    public boolean send_data(ZMsg data){
+        if(mState == STATE_ONLINE){
+            data.send(mNetSettings.arChannel);
 
+            return true;
+        }
+        return false;
     }
 }

@@ -203,7 +203,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         Camera camera = arFragment.getArSceneView().getArFrame().getCamera();
         if (camera.getTrackingState() == TrackingState.TRACKING && send_position) {
                 try {
-                    Util.packCamera(camera).send(netManager.mNetSettings.arChannel);
+                    netManager.send_data(Util.packCamera(camera));
 
                 } catch (IOException e) {
                     e.printStackTrace();
