@@ -72,8 +72,12 @@ public class CameraTrackingActivity extends AppCompatActivity
                     switch ((int)msg.obj){
                         case 0:
                             setcameraStream(false);
+
                             break;
                         case 1:
+                            setcameraStream(false);
+                            break;
+                        case 2:
 
                             break;
                     }
@@ -116,13 +120,36 @@ public class CameraTrackingActivity extends AppCompatActivity
         alertDialog.show();
     }
 
+    public void showDeconnexionDialog(){
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setCancelable(true);
+        alertDialogBuilder.setMessage("Disconnect ?");
+        alertDialogBuilder.setPositiveButton("yes",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface arg0, int arg1) {
+                        Log.i("Net","Trying to disconnect");
+                        netManager.disconnect();
+                    }
+                });
+
+        alertDialogBuilder.setNegativeButton("Cancel",new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        });
+
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
+    }
     public void onClickButtonConnexion(View v)
     {
-        if(netManager != null){
+        if(netManager.mState == 0){
             showConnexionDialog();
         }
         else{
-
+            showDeconnexionDialog();
         }
     }
 
@@ -132,7 +159,7 @@ public class CameraTrackingActivity extends AppCompatActivity
             cameraStreamButton.setImageResource(R.drawable.round_videocam_off_white_18dp);
             cameraStreamButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimary));
         }
-        else if(netManager.mState == 1){
+        else if(netManager.mState == 2){
             send_position = true;
             cameraStreamButton.setImageResource(R.drawable.round_videocam_white_18dp);
             cameraStreamButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorOnline));
@@ -147,9 +174,13 @@ public class CameraTrackingActivity extends AppCompatActivity
         switch (status){
             case 0:
                 connectButton.setImageResource(R.drawable.round_cast_white_18dp);
-                connectButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorError));
+                connectButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorIdle));
                 break;
             case 1:
+                connectButton.setImageResource(R.drawable.round_cast_white_18dp);
+                connectButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorError));
+                break;
+            case 2:
                 connectButton.setImageResource(R.drawable.round_cast_connected_white_18dp);
                 connectButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorOnline));
                 break;
@@ -181,7 +212,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         arFragment = (CameraTrackingFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
         cameraStreamButton = (ImageButton)findViewById(R.id.stream_camera);
         connectButton = (ImageButton)findViewById(R.id.connect);
-        
+
 
         // Net setup
         netManager = new NetworkManager(netHandler);

@@ -10,10 +10,11 @@ import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
 public class NetworkManager {
-    private final int STATE_OFFLINE = 0;
-    private final int STATE_ONLINE = 1;
+    private final int STATE_IDLE = 0;
+    private final int STATE_OFFLINE = 1;
+    private final int STATE_ONLINE = 2;
 
-    public int mState = STATE_OFFLINE;
+    public int mState = STATE_IDLE;
     private String mAddress;
 
     private Handler netHandler;
@@ -27,16 +28,20 @@ public class NetworkManager {
     }
 
     public void connect(String address){
+        mState = STATE_OFFLINE;
         mAddress = address;
         mNetSettings = new NetworkSettings(address);
         stateHandler = new Handler();
         stateRunnable = new Runnable() {
             public void run() {
+                if (mState == STATE_IDLE){
+                    return;
+                }
                 if (mState == STATE_OFFLINE){
                     Log.i("Net","Onpen new connexion");
                     mNetSettings.connect(mAddress);
-
                 }
+
                 Log.i("Net","Done");
                 ZMQ.Poller items = mNetSettings.ctx.poller(1);
                 items.register(mNetSettings.stateChannel, ZMQ.Poller.POLLIN);
@@ -60,6 +65,13 @@ public class NetworkManager {
 
         stateHandler.postDelayed(stateRunnable, 4000);
 
+    }
+
+    public void disconnect(){
+        mState = STATE_IDLE;
+        netHandler.sendMessage(netHandler.obtainMessage(0,mState));
+
+        mNetSettings.close();
     }
 
     public boolean send_data(ZMsg data){
