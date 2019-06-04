@@ -2,16 +2,25 @@ package com.remote.blender;
 
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
+import android.view.View;
+import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.Toast;
 
@@ -41,35 +50,70 @@ public class CameraTrackingActivity extends AppCompatActivity
     private static final String TAG = CameraTrackingActivity.class.getSimpleName();
     private static final double MIN_OPENGL_VERSION = 3.0;
 
+    // UI vars
     private CameraTrackingFragment arFragment;
+    private ImageButton cameraStream;
     private ModelRenderable andyRenderable;
+    private LinearLayout connexionPannel;
+
+    // Net vars
     private boolean send_position;
     private ZMQ.Context ctx;
     private ZMQ.Socket push_socket;
+    private NetworkManager netManager;
 
-    private void clientMessageReceived(String messageBody) {
-        System.out.println("toto");
+
+    public void showConnexionDialog(){
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setCancelable(true);
+        alertDialogBuilder.setTitle("Connexion");
+        // Set up the input
+        final EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        alertDialogBuilder.setView(input);
+
+        alertDialogBuilder.setMessage("Enter server address");
+        alertDialogBuilder.setPositiveButton("yes",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface arg0, int arg1) {
+                        Toast.makeText(CameraTrackingActivity.this,"You clicked yesbutton",Toast.LENGTH_LONG).show();
+                    }
+                });
+
+        alertDialogBuilder.setNegativeButton("Cancel",new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        });
+
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
     }
+    public void onClickButtonConnexion(View v)
+    {
+        if(netManager != null){
+            showConnexionDialog();
+        }
+        else{
 
-    private final MessageListenerHandler clientMessageHandler = new MessageListenerHandler(
-            new IMessageListener() {
-                @Override
-                public void messageReceived(String messageBody) {
-                    clientMessageReceived(messageBody);
-                }
-            },
-            Util.MESSAGE_PAYLOAD_KEY);
+        }
+    }
+    public void onClickButtonCameraStream(View v)
+    {
+        if(send_position){
+            send_position = false;
+            cameraStream.setImageResource(R.drawable.round_videocam_off_white_18dp);
+            cameraStream.setBackgroundTintList(v.getResources().getColorStateList(R.color.colorPrimary));
 
-//    Handler handler=new Handler();
-//    private Runnable runnable = new Runnable() {
-//        @Override
-//        public void run() {
-//            /* do what you need to do */
-//            Log.i("ping","ping");
-//            /* and here comes the "trick" */
-//            handler.postDelayed(this, 100);
-//        }
-//    };
+        }
+        else{
+            send_position = true;
+            cameraStream.setImageResource(R.drawable.round_videocam_white_18dp);
+            cameraStream.setBackgroundTintList(v.getResources().getColorStateList(R.color.colorOnline));
+        }
+    }
 
     @Override
     @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"})
@@ -82,11 +126,14 @@ public class CameraTrackingActivity extends AppCompatActivity
             return;
         }
         // Get the previous activity message
-        Intent intent = getIntent();
-        String server_ip = intent.getStringExtra(MainActivity.EXTRA_MESSAGE);
+        String server_ip = "192.168.0.10";
 
         setContentView(R.layout.activity_camera_tracking);
         arFragment = (CameraTrackingFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
+        cameraStream = (ImageButton)findViewById(R.id.stream_camera);
+        connexionPannel = findViewById(R.id.connexion_pannel);
+
+
         ctx = ZMQ.context(1);
         push_socket = ctx.socket(SocketType.PUSH);
 
@@ -94,15 +141,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         //Start to ping the server
 //        handler.postDelayed(runnable,2000);
 
-        // UI event setup
-        Switch send_position_switch = (Switch) findViewById(R.id.send_position);
 
-        send_position_switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                send_position = isChecked;
-            }
-        });
 
         //3d scene setup
 
@@ -189,3 +228,39 @@ public class CameraTrackingActivity extends AppCompatActivity
         return true;
     }
 }
+
+//public class MainActivity extends AppCompatActivity {
+//    public static final String EXTRA_MESSAGE = "com.example.blenderremote.MESSAGE";
+//
+//    @Override
+//    protected void onCreate(Bundle savedInstanceState) {
+//        super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
+//    }
+//
+//    /** Called when the user taps the Send button */
+//    public void sendMessage(View view){
+//        Intent intent = new Intent(this, CameraTrackingActivity.class);
+//        EditText editText = (EditText) findViewById(R.id.editText);
+//
+//        String server_address = String.format("tcp://%s:%d",editText.getText().toString(),5557);
+//        ZMQ.Context ctx = ZMQ.context(1);
+//        ZMQ.Socket ping = ctx.socket(SocketType.REQ);
+//        Log.i("Net",server_address);
+//        ping.connect(server_address);
+//
+//        ZMQ.Poller items = ctx.poller(1);
+//        items.register(ping, ZMQ.Poller.POLLIN);
+//
+//        ping.send("ping");
+//        items.poll(3000);
+//        if(items.pollin(0)) {
+//            byte[] msg = ping.recv();
+//            String message = editText.getText().toString();
+//            intent.putExtra(EXTRA_MESSAGE, message);
+//            startActivity(intent);
+//        }
+//        Log.i("Net","No response to the ping request");
+//
+//    }
+//}
