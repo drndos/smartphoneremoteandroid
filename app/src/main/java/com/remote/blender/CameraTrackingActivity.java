@@ -48,6 +48,7 @@ import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
 import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
+import org.zeromq.ZMsg;
 
 import java.io.IOException;
 
@@ -255,6 +256,10 @@ public class CameraTrackingActivity extends AppCompatActivity
                         return;
                     }
 
+                    if (sceneNode!=null && sceneTransform!=null){
+                        sceneNode.removeChild(sceneTransform);
+
+                    }
                     if (sceneAnchor!=null){
                         sceneAnchor.detach();
                     }
@@ -266,7 +271,8 @@ public class CameraTrackingActivity extends AppCompatActivity
                     // Create the transformable andy and add it to the anchor.
 
                     sceneTransform = new TransformableNode(arFragment.getTransformationSystem());
-
+                    sceneTransform.getScaleController().setMaxScale(10);
+                    sceneTransform.getScaleController().setMinScale(1);
                     sceneTransform.setParent(sceneNode);
                     sceneTransform.setRenderable(andyRenderable);
                     sceneTransform.select();
@@ -284,7 +290,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         if(sceneAnchor != null){
             float[] cameraMatrix = new float[16];
             Camera camera = arFragment.getArSceneView().getArFrame().getCamera();
-            camera.getPose().toMatrix(cameraMatrix,0);
+//            camera.getPose().toMatrix(cameraMatrix,0);
 
 //            Matrix cam = new Matrix(cameraMatrix);
 //            Matrix anchor =  sceneTransform.getWorldModelMatrix();
@@ -292,16 +298,14 @@ public class CameraTrackingActivity extends AppCompatActivity
 //
 //            Matrix.multiply(out,cam,anchor);
 
-
-
-            float came_trans[] =  camera.getPose().getTranslation();
-            Vector3 camera_translation = new Vector3(came_trans[0],came_trans[1],came_trans[2]) ;
-            Vector3 result = Vector3.cross( camera_translation, sceneTransform.getWorldPosition());
-            double scale =   (sceneTransform.getWorldScale().x * 100) / 1.7;
-            result.scaled((float)scale);
-            Log.i("Net",Float.toString(sceneTransform.getWorldScale().x));
-            float t[] = {result.x,result.y,result.z};
-            Pose output = new Pose(t,camera.getPose().getRotationQuaternion());
+//            float came_trans[] =  camera.getPose().getTranslation();
+//            Vector3 camera_translation = new Vector3(came_trans[0],came_trans[1],came_trans[2]) ;
+//            Vector3 result = Vector3.cross( camera_translation, sceneTransform.getWorldPosition());
+//            double scale =   (sceneTransform.getWorldScale().x * 100) / 1.7;
+//            result.scaled((float)scale);
+//            Log.i("Net",Float.toString(sceneTransform.getWorldScale().x));
+//            float t[] = {result.x,result.y,result.z};
+//            Pose output = new Pose(t,camera.getPose().getRotationQuaternion());
 
 //            Vector3 transl = new Vector3();
 //            out.decomposeTranslation(transl);
@@ -311,7 +315,12 @@ public class CameraTrackingActivity extends AppCompatActivity
 //            Pose changed = new Pose(transl,rot);
             if (camera.getTrackingState() == TrackingState.TRACKING && send_position) {
                 try {
-                    netManager.send_data(Util.packPose(output));
+                    ZMsg message_buffer = new ZMsg();
+
+                    Util.packCamera(message_buffer,camera);
+                    Util.packTransformableNode(message_buffer, sceneTransform);
+
+                    netManager.send_data(message_buffer);
 
                 } catch (IOException e) {
                     e.printStackTrace();

@@ -46,7 +46,9 @@ dependencies {
 }
 
 
+
+
 sceneform.asset('sampledata/models/gizmo.gltf',
         'default',
         'sampledata/models/gizmo.sfa',
-        'src/main/assets/gizmo')
+        'src/main/res/raw/gizmo')

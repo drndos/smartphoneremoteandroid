@@ -7,6 +7,9 @@ import android.util.Log;
 
 import com.google.ar.core.Camera;
 import com.google.ar.core.Pose;
+import com.google.ar.sceneform.math.Quaternion;
+import com.google.ar.sceneform.math.Vector3;
+import com.google.ar.sceneform.ux.TransformableNode;
 
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
@@ -44,20 +47,20 @@ public class Util {
 	      m.setData(b);
 	      return ;      
 	}
-	public static ZMsg packPose(Pose pose) throws IOException {
-		ZMsg message_buffer = new ZMsg();
+
+	public static ZMsg packTransformableNode(ZMsg message_buffer, TransformableNode node) throws IOException {
 		MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
 
 		float sqrtHalf = (float) Math.sqrt(0.5f);
 		//HEADER
-		message_buffer.add("CAMERA");
+		message_buffer.add("NODE");
 
 		float[] rotation = {0,0,0,0};
-		float[] raw_rotation = pose.getRotationQuaternion();
-		rotation[0] = raw_rotation[3];
-		rotation[1] = raw_rotation[0];
-		rotation[2] = raw_rotation[1];
-		rotation[3] = raw_rotation[2];
+		Quaternion raw_rotation = node.getWorldRotation();
+		rotation[0] = raw_rotation.w;
+		rotation[1] = raw_rotation.x;
+		rotation[2] = raw_rotation.y;
+		rotation[3] = raw_rotation.z;
 
 
 		packer.packArrayHeader(rotation.length);
@@ -68,24 +71,36 @@ public class Util {
 		packer.clear();
 
 		float[] translation = {0,0,0};
-		float[] raw_translation = pose.getTranslation();
-		translation[0] = raw_translation[0];
-		translation[1] = raw_translation[2];
-		translation[2] = raw_translation[1];
+		Vector3 raw_translation = node.getWorldPosition();
+		translation[0] = raw_translation.x;
+		translation[1] = raw_translation.z;
+		translation[2] = raw_translation.y;
 
 		packer.packArrayHeader(translation.length);
 		for (float v : translation) {
 			packer.packFloat(v);
 		}
 		message_buffer.add(packer.toByteArray());
+		packer.clear();
+
+		float[] scale = {0,0,0};
+		Vector3 raw_scale = node.getWorldScale();
+		scale[0] = raw_scale.x;
+		scale[1] = raw_scale.z;
+		scale[2] = raw_scale.y;
+		packer.packArrayHeader(scale.length);
+		for (float v : scale) {
+			packer.packFloat(v);
+		}
+		message_buffer.add(packer.toByteArray());
+
 
 		packer.close();
 		return message_buffer;
 
 	}
 
-	public static ZMsg packCamera(Camera camera) throws IOException {
-		ZMsg message_buffer = new ZMsg();
+	public static ZMsg packCamera(ZMsg message_buffer,Camera camera) throws IOException {
 		MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
 
 		float sqrtHalf = (float) Math.sqrt(0.5f);
@@ -110,7 +125,7 @@ public class Util {
 		float[] translation = {0,0,0};
 		float[] raw_translation = camera.getDisplayOrientedPose().getTranslation();
 		translation[0] = raw_translation[0];
-		translation[1] = -raw_translation[2];
+		translation[1] = raw_translation[2];
 		translation[2] = raw_translation[1];
 
 		packer.packArrayHeader(translation.length);
