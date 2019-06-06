@@ -7,6 +7,7 @@ import android.util.Log;
 
 import com.google.ar.core.Camera;
 import com.google.ar.core.Pose;
+import com.google.ar.sceneform.math.Matrix;
 import com.google.ar.sceneform.math.Quaternion;
 import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.ux.TransformableNode;
@@ -107,13 +108,13 @@ public class Util {
 		//HEADER
 		message_buffer.add("CAMERA");
 
+		// ROTATION
 		float[] rotation = {0,0,0,0};
 		float[] raw_rotation = camera.getDisplayOrientedPose().getRotationQuaternion();
 		rotation[0] = raw_rotation[3];
 		rotation[1] = raw_rotation[0];
 		rotation[2] = raw_rotation[1];
 		rotation[3] = raw_rotation[2];
-
 
 		packer.packArrayHeader(rotation.length);
 		for (float v : rotation) {
@@ -122,8 +123,10 @@ public class Util {
 		message_buffer.add(packer.toByteArray());
 		packer.clear();
 
+		// TRANSLATION
 		float[] translation = {0,0,0};
 		float[] raw_translation = camera.getDisplayOrientedPose().getTranslation();
+
 		translation[0] = raw_translation[0];
 		translation[1] = raw_translation[2];
 		translation[2] = raw_translation[1];
@@ -133,20 +136,20 @@ public class Util {
 			packer.packFloat(v);
 		}
 		message_buffer.add(packer.toByteArray());
+		packer.clear();
+
+		//MATRIX
+		float[] projection =  new float[16];
+		camera.getViewMatrix(projection,0);
+		packer.packArrayHeader(projection.length);
+		for (float v : projection) {
+			packer.packFloat(v);
+		}
+		message_buffer.add(packer.toByteArray());
 
 		packer.close();
 		return message_buffer;
 
 	}
-	public static byte[] packFloatArray(float[] rotation) throws IOException {
-		MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
-		packer.packArrayHeader(rotation.length);
-		for (float v : rotation) {
-			packer.packFloat(v);
-		}
 
-
-
-		return packer.toByteArray();
-	}
 }
