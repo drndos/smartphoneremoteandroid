@@ -52,6 +52,7 @@ public class Util {
 	public static ZMsg packTransformableNode(ZMsg message_buffer, TransformableNode node) throws IOException {
 		MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
 
+
 		float sqrtHalf = (float) Math.sqrt(0.5f);
 		//HEADER
 		message_buffer.add("NODE");
@@ -94,7 +95,18 @@ public class Util {
 			packer.packFloat(v);
 		}
 		message_buffer.add(packer.toByteArray());
+		packer.clear();
 
+		//MATRIX
+		float[] world =  new float[16];
+
+		world = node.getWorldModelMatrix().data;
+
+		packer.packArrayHeader(world.length);
+		for (float v : world) {
+			packer.packFloat(v);
+		}
+		message_buffer.add(packer.toByteArray());
 
 		packer.close();
 		return message_buffer;
@@ -140,7 +152,7 @@ public class Util {
 
 		//MATRIX
 		float[] projection =  new float[16];
-		camera.getViewMatrix(projection,0);
+		camera.getDisplayOrientedPose().toMatrix(projection,0);
 		packer.packArrayHeader(projection.length);
 		for (float v : projection) {
 			packer.packFloat(v);
