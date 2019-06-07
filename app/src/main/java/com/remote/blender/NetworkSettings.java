@@ -1,7 +1,11 @@
 package com.remote.blender;
 
+import android.net.wifi.WifiManager;
+
 import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
+
+import static android.content.Context.WIFI_SERVICE;
 
 public class NetworkSettings {
     private final int stateChannelPort = 5557;
@@ -14,6 +18,7 @@ public class NetworkSettings {
     public ZMQ.Socket stateChannel;
     public ZMQ.Socket arChannel;
     public ZMQ.Socket dccChannel;
+    public String localIp;
 
     NetworkSettings(String address){
         ctx = ZMQ.context(1);
@@ -25,16 +30,22 @@ public class NetworkSettings {
     public void close(){
         stateChannel.close();
         arChannel.close();
+
     }
 
     public void connect(String address){
 
 
         stateChannel = ctx.socket(SocketType.REQ);
+        dccChannel = ctx.socket(SocketType.REQ);
         arChannel = ctx.socket(SocketType.PUSH);
 
+
         stateChannel.connect(String.format("tcp://%s:%d",address,stateChannelPort));
+        dccChannel.connect(String.format("tcp://%s:%d",address,dccChannelPort));
         arChannel.connect(String.format("tcp://%s:%d",address,arChannelPort));
+
+
     }
 
 }

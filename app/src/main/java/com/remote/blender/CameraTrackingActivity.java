@@ -7,9 +7,11 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
+import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.InputType;
@@ -51,6 +53,11 @@ import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
 import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.Enumeration;
 
 public class CameraTrackingActivity extends AppCompatActivity
         implements Scene.OnUpdateListener {
@@ -66,7 +73,7 @@ public class CameraTrackingActivity extends AppCompatActivity
     private CameraTrackingFragment arFragment;
     private ImageButton cameraStreamButton;
     private ImageButton connectButton;
-    private ModelRenderable andyRenderable;
+    private ModelRenderable originRenderable;
     private LinearLayout connexionPannel;
 
     // Net vars
@@ -209,12 +216,40 @@ public class CameraTrackingActivity extends AppCompatActivity
         }
     }
 
+    public void requestSceneUpdate(View v){
+        if(netManager.mState == 2) {
+            new AskSceneUpdate().execute(netManager.mNetSettings.dccChannel);
+            Toast.makeText(CameraTrackingActivity.this, "request scene update launched", Toast.LENGTH_LONG).show();
+        }
+    }
     @Override
     @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"})
     // CompletableFuture requires api level 24
     // FutureReturnValueIgnored is not valid
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        String ip = "none";
+
+        try {
+            Enumeration networkInterfaces = NetworkInterface.getNetworkInterfaces();  // gets All networkInterfaces of your device
+            while (networkInterfaces.hasMoreElements()) {
+                NetworkInterface inet = (NetworkInterface) networkInterfaces.nextElement();
+                Enumeration address = inet.getInetAddresses();
+                while (address.hasMoreElements()) {
+                    InetAddress inetAddress = (InetAddress) address.nextElement();
+                    if (inetAddress.isSiteLocalAddress()) {
+                        System.out.println("Your ip: " + inetAddress.getHostAddress());  /// gives ip address of your device
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Handle Exception
+        }
+        WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
 
         if (!checkIsSupportedDeviceOrFinish(this)) {
             return;
@@ -228,7 +263,7 @@ public class CameraTrackingActivity extends AppCompatActivity
 
 
         // Net setup
-        netManager = new NetworkManager(netHandler);
+        netManager = new NetworkManager(netHandler,wifiManager);
 
 
         // ASSETS SETUP
@@ -238,7 +273,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         ModelRenderable.builder()
             .setSource(this, R.raw.gizmo)
             .build()
-            .thenAccept(renderable -> andyRenderable = renderable)
+            .thenAccept(renderable -> originRenderable = renderable)
             .exceptionally(
                     throwable -> {
                         Toast toast =
@@ -252,7 +287,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         arFragment.getArSceneView().getScene().addOnUpdateListener(this);
         arFragment.setOnTapArPlaneListener(
                 (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
-                    if (andyRenderable == null) {
+                    if (originRenderable == null) {
                         return;
                     }
 
@@ -265,7 +300,11 @@ public class CameraTrackingActivity extends AppCompatActivity
                     }
                     // Create the Anchor.
                     sceneAnchor = hitResult.createAnchor();
+
+                    hitResult.getHitPose().getTranslation();
                     sceneNode = new AnchorNode(sceneAnchor);
+                    sceneNode.setWorldRotation(Quaternion.eulerAngles(new Vector3(0,0,0)));
+
                     sceneNode.setParent(arFragment.getArSceneView().getScene());
 
                     // Create the transformable andy and add it to the anchor.
@@ -274,9 +313,10 @@ public class CameraTrackingActivity extends AppCompatActivity
                     sceneTransform.getScaleController().setMaxScale(10);
                     sceneTransform.getScaleController().setMinScale(1);
                     sceneTransform.setParent(sceneNode);
-                    sceneTransform.setRenderable(andyRenderable);
+                    sceneTransform.getRotationController().setRotationRateDegrees(0);
+                    sceneTransform.setRenderable(originRenderable);
                     sceneTransform.select();
-
+                    sceneTransform.setWorldRotation(new Quaternion(0,0,0,1));
 
                 });
 
@@ -290,6 +330,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         if(sceneAnchor != null){
             float[] cameraMatrix = new float[16];
             Camera camera = arFragment.getArSceneView().getArFrame().getCamera();
+              Log.i("Net", Float.toString(sceneTransform.getWorldRotation().y));
 //            camera.getPose().toMatrix(cameraMatrix,0);
 
 //            Matrix cam = new Matrix(cameraMatrix);

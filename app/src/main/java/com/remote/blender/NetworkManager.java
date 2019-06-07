@@ -1,13 +1,19 @@
 package com.remote.blender;
 
 import android.content.Intent;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import org.zeromq.SocketType;
+import org.zeromq.ZFrame;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class NetworkManager {
     private final int STATE_IDLE = 0;
@@ -22,16 +28,31 @@ public class NetworkManager {
     public NetworkSettings mNetSettings;
     public Handler stateHandler = null;
     public static Runnable stateRunnable = null;
+    public static Runnable dccRunnable = null;
+    public Future longRunningTaskFuture;
+    public ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private WifiManager wifi;
+    private String localeAddr;
 
-    NetworkManager(Handler handler){
+    NetworkManager(Handler handler, WifiManager w){
+        wifi =w;
         netHandler = handler;
+        localeAddr = getLocalAddr();
+
+    }
+    private String getLocalAddr(){
+        int ipAddress = wifi.getConnectionInfo().getIpAddress();
+        return String.format("%d.%d.%d.%d", (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
+                (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
     }
 
     public void connect(String address){
+        Log.i("Net",address);
         mState = STATE_OFFLINE;
         mAddress = address;
         mNetSettings = new NetworkSettings(address);
         stateHandler = new Handler();
+
         stateRunnable = new Runnable() {
             public void run() {
                 if (mState == STATE_IDLE){
@@ -46,11 +67,21 @@ public class NetworkManager {
                 ZMQ.Poller items = mNetSettings.ctx.poller(1);
                 items.register(mNetSettings.stateChannel, ZMQ.Poller.POLLIN);
 
-                mNetSettings.stateChannel.send("ping");
+                mNetSettings.stateChannel.send(localeAddr);
                 items.poll(mNetSettings.stateTimout);
                 if(items.pollin(0)) {
-                    byte[] msg = mNetSettings.stateChannel.recv();
+                    ZMsg  msg = ZMsg.recvMsg(mNetSettings.stateChannel);
+                    ZFrame header = msg.pop();
+                    switch (header.getString(ZMQ.CHARSET)){
+                        case "PING":
+                            break;
+                        case "SCENE":
+                            Log.i("Net","Scene");
+                        default:
+                            break;
+                    }
                     mState = STATE_ONLINE;
+
 
                 }
                 else{
@@ -63,14 +94,13 @@ public class NetworkManager {
             }
         };
 
-        stateHandler.postDelayed(stateRunnable, 4000);
 
+        stateHandler.postDelayed(stateRunnable, 4000);
     }
 
     public void disconnect(){
         mState = STATE_IDLE;
         netHandler.sendMessage(netHandler.obtainMessage(0,mState));
-
         mNetSettings.close();
     }
 
