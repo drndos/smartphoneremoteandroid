@@ -1,5 +1,6 @@
 package com.remote.blender;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -33,11 +34,13 @@ public class NetworkManager {
     public ExecutorService executorService = Executors.newSingleThreadExecutor();
     private WifiManager wifi;
     private String localeAddr;
+    public Context app;
 
-    NetworkManager(Handler handler, WifiManager w){
+    NetworkManager(Handler handler, WifiManager w, Context app){
         wifi =w;
         netHandler = handler;
         localeAddr = getLocalAddr();
+        this.app = app;
 
     }
     private String getLocalAddr(){
@@ -59,11 +62,9 @@ public class NetworkManager {
                     return;
                 }
                 if (mState == STATE_OFFLINE){
-                    Log.i("Net","Onpen new connexion");
                     mNetSettings.connect(mAddress);
                 }
 
-                Log.i("Net","Done");
                     ZMQ.Poller items = mNetSettings.ctx.poller(1);
                     items.register(mNetSettings.stateChannel, ZMQ.Poller.POLLIN);
 
@@ -76,7 +77,7 @@ public class NetworkManager {
                         case "PING":
                             break;
                         case "SCENE":
-                            Log.i("Net","Scene");
+                            break;
                         default:
                             break;
                     }

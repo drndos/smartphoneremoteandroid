@@ -55,8 +55,13 @@ import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -119,16 +124,35 @@ public class CameraTrackingActivity extends AppCompatActivity
             switch (msg.what){
                 // STATE MESSAGE
                 case 0:
-                    loadScene();
+                    File path =  netManager.app.getFilesDir();
+                    File file = new File(path, "scene_cache.gltf");
+                    int length = (int) file.length();
+                    Log.i("Net",String.valueOf(length));
+                    Log.i("Net","YOLO");
+//                    try {
+//                        int length = (int) file.length();
+//
+//                        byte[] bytes = new byte[length];
+//
+//                        FileInputStream in = new FileInputStream(file);
+//                        try {
+//                            in.read(bytes);
+//                        } finally {
+//                            in.close();
+//                        }
+//                        String contents = new String(bytes);
+//                        Log.i("Net",contents);
+//                    }
+//                    catch (FileNotFoundException e) {
+//                        Log.e("login activity", "File not found: " + e.toString());
+//                    } catch (IOException e) {
+//                        Log.e("login activity", "Can not read file: " + e.toString());
+//                    }
 
-
-
+                    loadScene(file);
 
                     Log.i("Net","Received scene !");
                     isSceneUpdating = false;
-                default:
-                    Toast.makeText(CameraTrackingActivity.this, "ERROR", Toast.LENGTH_LONG).show();
-                    break;
             }
 
 
@@ -136,23 +160,25 @@ public class CameraTrackingActivity extends AppCompatActivity
             }
     });
     private  boolean isSceneUpdating = false;
+    private static final String GLTF_ASSET =
+            "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/Duck/glTF/Duck.gltf";
+    private void loadScene(File file){
 
-    private void loadScene(){
+        Log.i("Net","Load: "+  Uri.fromFile(file).toString());
         ModelRenderable.builder()
                 .setSource(this, RenderableSource.builder().setSource(
                         this,
-                        Uri.fromFile(new File("scene_cache.gltf")),
-                        RenderableSource.SourceType.GLTF2)
-                        .setScale(0.5f)  // Scale the original model to 50%.
-                        .setRecenterMode(RenderableSource.RecenterMode.ROOT)
-                        .build())
+                        Uri.fromFile(file),
+                        RenderableSource.SourceType.GLTF2).build())
+                .setRegistryId(GLTF_ASSET)
                 .build()
-                .thenAccept(renderable -> originRenderable = renderable)
+//                .thenAccept(renderable -> originRenderable = renderable)
                 .exceptionally(
                         throwable -> {
-                            Log.i("Net","ERROR");
+                            Log.i("Net","LOAD MODEL ERROR");
                             return null;
                         });
+
     }
     public void showConnexionDialog(){
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
@@ -314,7 +340,7 @@ public class CameraTrackingActivity extends AppCompatActivity
 
 
         // Net setup
-        netManager = new NetworkManager(netHandler,wifiManager);
+        netManager = new NetworkManager(netHandler,wifiManager,this);
 
 
         // ASSETS SETUP
@@ -376,35 +402,9 @@ public class CameraTrackingActivity extends AppCompatActivity
 
     @Override
     public void onUpdate(FrameTime frameTime) {
-       ;
-
         if(sceneAnchor != null){
-            float[] cameraMatrix = new float[16];
             Camera camera = arFragment.getArSceneView().getArFrame().getCamera();
-              Log.i("Net", Float.toString(sceneTransform.getWorldRotation().y));
-//            camera.getPose().toMatrix(cameraMatrix,0);
 
-//            Matrix cam = new Matrix(cameraMatrix);
-//            Matrix anchor =  sceneTransform.getWorldModelMatrix();
-//            Matrix out= new Matrix();
-//
-//            Matrix.multiply(out,cam,anchor);
-
-//            float came_trans[] =  camera.getPose().getTranslation();
-//            Vector3 camera_translation = new Vector3(came_trans[0],came_trans[1],came_trans[2]) ;
-//            Vector3 result = Vector3.cross( camera_translation, sceneTransform.getWorldPosition());
-//            double scale =   (sceneTransform.getWorldScale().x * 100) / 1.7;
-//            result.scaled((float)scale);
-//            Log.i("Net",Float.toString(sceneTransform.getWorldScale().x));
-//            float t[] = {result.x,result.y,result.z};
-//            Pose output = new Pose(t,camera.getPose().getRotationQuaternion());
-
-//            Vector3 transl = new Vector3();
-//            out.decomposeTranslation(transl);
-//            Quaternion rot = new Quaternion();
-//            out.extractQuaternion(rot);
-
-//            Pose changed = new Pose(transl,rot);
             if (camera.getTrackingState() == TrackingState.TRACKING && send_position) {
                 try {
                     ZMsg message_buffer = new ZMsg();

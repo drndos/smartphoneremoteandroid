@@ -27,9 +27,11 @@ import org.zeromq.ZMsg;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 public class AskSceneUpdate  extends AsyncTask<NetworkManager, Void, String> {
@@ -48,34 +50,49 @@ public class AskSceneUpdate  extends AsyncTask<NetworkManager, Void, String> {
 
             Log.i("Net","pushing data");
 
-            items.poll(2000);
+            items.poll(10000);
 //            File f = new File();
             if (items.pollin(0)){
-                String raw_data =  params[0].mNetSettings.dccChannel.recvStr();
+                byte[] raw_data =  params[0].mNetSettings.dccChannel.recv();
 //                Log.i("Net","getting something !");
 //                MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(raw_data);
 //                Log.i("Net","unpacking");
 //                try {
 //                    scene = unpacker.unpackString();
-                    Log.i("Net",raw_data);
-                    scene = raw_data;
 //                    unpacker.close();
 //                } catch (IOException e) {
 //                    e.printStackTrace();
 //                }
+                Log.i("Net","Writing cache");
+                File path =  params[0].app.getFilesDir();
+                File file = new File(path, "scene_cache.gltf");
+                FileOutputStream stream;
                 try {
-                    BufferedWriter bwr = new BufferedWriter(new FileWriter(new File("scene_cache.gltf")));
-                    bwr.write(raw_data);
-                    bwr.close();
+                    stream = new FileOutputStream(file);
+                    stream.write(raw_data);
+                    stream.close();
                     callback.sendMessage(callback.obtainMessage(0));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+
+//                try {
+//                    BufferedWriter bwr = new BufferedWriter(new FileWriter(new File("scene_cache.gltf")));
+//                    Log.i("Net","Writing cache");
+//                    bwr.write(raw_data);
+//                    bwr.close();
+
+
+
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
             }
             else{
                 Log.i("Net","Nothing");
                 callback.sendMessage(callback.obtainMessage(1));
             }
+
 //            InputStream stream = new ByteArrayInputStream(scene.getBytes(StandardCharsets.UTF_8));
             return "Done";
         }
