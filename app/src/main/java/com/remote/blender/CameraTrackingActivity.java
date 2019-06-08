@@ -7,6 +7,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Handler;
@@ -40,10 +41,12 @@ import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.FrameTime;
 import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.Scene;
+import com.google.ar.sceneform.assets.RenderableSource;
 import com.google.ar.sceneform.math.Matrix;
 import com.google.ar.sceneform.math.Quaternion;
 import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.ModelRenderable;
+import com.google.ar.sceneform.rendering.Renderable;
 import com.google.ar.sceneform.ux.TransformableNode;
 
 import org.msgpack.core.MessageBufferPacker;
@@ -52,6 +55,7 @@ import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
@@ -107,12 +111,19 @@ public class CameraTrackingActivity extends AppCompatActivity
             return false;
         }
     });
+
+
     private Handler sceneUpdateHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
             switch (msg.what){
                 // STATE MESSAGE
                 case 0:
+                    loadScene();
+
+
+
+
                     Log.i("Net","Received scene !");
                     isSceneUpdating = false;
                 default:
@@ -126,6 +137,23 @@ public class CameraTrackingActivity extends AppCompatActivity
     });
     private  boolean isSceneUpdating = false;
 
+    private void loadScene(){
+        ModelRenderable.builder()
+                .setSource(this, RenderableSource.builder().setSource(
+                        this,
+                        Uri.fromFile(new File("scene_cache.gltf")),
+                        RenderableSource.SourceType.GLTF2)
+                        .setScale(0.5f)  // Scale the original model to 50%.
+                        .setRecenterMode(RenderableSource.RecenterMode.ROOT)
+                        .build())
+                .build()
+                .thenAccept(renderable -> originRenderable = renderable)
+                .exceptionally(
+                        throwable -> {
+                            Log.i("Net","ERROR");
+                            return null;
+                        });
+    }
     public void showConnexionDialog(){
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder.setCancelable(true);
@@ -250,6 +278,7 @@ public class CameraTrackingActivity extends AppCompatActivity
     // FutureReturnValueIgnored is not valid
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         String ip = "none";
 
         try {
