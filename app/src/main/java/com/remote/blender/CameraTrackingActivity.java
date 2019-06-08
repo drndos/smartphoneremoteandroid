@@ -107,6 +107,24 @@ public class CameraTrackingActivity extends AppCompatActivity
             return false;
         }
     });
+    private Handler sceneUpdateHandler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            switch (msg.what){
+                // STATE MESSAGE
+                case 0:
+                    Log.i("Net","Received scene !");
+                    isSceneUpdating = false;
+                default:
+                    Toast.makeText(CameraTrackingActivity.this, "ERROR", Toast.LENGTH_LONG).show();
+                    break;
+            }
+
+
+                return false;
+            }
+    });
+    private  boolean isSceneUpdating = false;
 
     public void showConnexionDialog(){
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
@@ -217,9 +235,13 @@ public class CameraTrackingActivity extends AppCompatActivity
     }
 
     public void requestSceneUpdate(View v){
-        if(netManager.mState == 2) {
-            new AskSceneUpdate().execute(netManager.mNetSettings.dccChannel);
+        if(netManager.mState == 2 && !isSceneUpdating ) {
+            new AskSceneUpdate(sceneUpdateHandler).execute(netManager);
             Toast.makeText(CameraTrackingActivity.this, "request scene update launched", Toast.LENGTH_LONG).show();
+            isSceneUpdating = true;
+        }
+        else{
+            Toast.makeText(CameraTrackingActivity.this, "Cannot request scene update now", Toast.LENGTH_LONG).show();
         }
     }
     @Override

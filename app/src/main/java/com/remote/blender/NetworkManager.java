@@ -64,8 +64,8 @@ public class NetworkManager {
                 }
 
                 Log.i("Net","Done");
-                ZMQ.Poller items = mNetSettings.ctx.poller(1);
-                items.register(mNetSettings.stateChannel, ZMQ.Poller.POLLIN);
+                    ZMQ.Poller items = mNetSettings.ctx.poller(1);
+                    items.register(mNetSettings.stateChannel, ZMQ.Poller.POLLIN);
 
                 mNetSettings.stateChannel.send(localeAddr);
                 items.poll(mNetSettings.stateTimout);
