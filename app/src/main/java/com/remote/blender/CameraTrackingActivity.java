@@ -77,6 +77,8 @@ public class CameraTrackingActivity extends AppCompatActivity
     private Anchor sceneAnchor;
     private AnchorNode sceneNode;
     private TransformableNode sceneTransform;
+    private boolean isSceneLoaded;
+    private File sceneChache;
 
     // UI vars
     private CameraTrackingFragment arFragment;
@@ -105,6 +107,10 @@ public class CameraTrackingActivity extends AppCompatActivity
                             setcameraStream(false);
                             break;
                         case 2:
+                            if (!isSceneLoaded && !isSceneUpdating){
+                                isSceneLoaded = true;
+                                requestSceneUpdate(requireViewById(R.id.connect));
+                            }
 
                             break;
                     }
@@ -124,13 +130,10 @@ public class CameraTrackingActivity extends AppCompatActivity
             switch (msg.what){
                 // STATE MESSAGE
                 case 0:
-                    File path =  netManager.app.getFilesDir();
-                    File file = new File(path,"scene_cache.glb");
-                    int length = (int) file.length();
+                    int length = (int) sceneChache.length();
                     Log.i("Net",String.valueOf(length));
-                    Log.i("Net","YOLO");
 
-                    loadScene(file);
+                    loadScene(sceneChache);
 
                     Log.i("Net","Received scene !");
                     isSceneUpdating = false;
@@ -328,6 +331,8 @@ public class CameraTrackingActivity extends AppCompatActivity
 
         // ASSETS SETUP
 
+        File path =  netManager.app.getFilesDir();
+        sceneChache = new File(path,"scene_cache.glb");
         // When you build a Renderable, Sceneform loads its resources in the background while returning
         // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
         ModelRenderable.builder()
