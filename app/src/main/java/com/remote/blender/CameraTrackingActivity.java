@@ -125,29 +125,10 @@ public class CameraTrackingActivity extends AppCompatActivity
                 // STATE MESSAGE
                 case 0:
                     File path =  netManager.app.getFilesDir();
-                    File file = new File(path, "scene_cache.gltf");
+                    File file = new File(path,"scene_cache.glb");
                     int length = (int) file.length();
                     Log.i("Net",String.valueOf(length));
                     Log.i("Net","YOLO");
-//                    try {
-//                        int length = (int) file.length();
-//
-//                        byte[] bytes = new byte[length];
-//
-//                        FileInputStream in = new FileInputStream(file);
-//                        try {
-//                            in.read(bytes);
-//                        } finally {
-//                            in.close();
-//                        }
-//                        String contents = new String(bytes);
-//                        Log.i("Net",contents);
-//                    }
-//                    catch (FileNotFoundException e) {
-//                        Log.e("login activity", "File not found: " + e.toString());
-//                    } catch (IOException e) {
-//                        Log.e("login activity", "Can not read file: " + e.toString());
-//                    }
 
                     loadScene(file);
 
@@ -160,19 +141,21 @@ public class CameraTrackingActivity extends AppCompatActivity
             }
     });
     private  boolean isSceneUpdating = false;
-    private static final String GLTF_ASSET =
-            "https://github.com/KhronosGroup/glTF-Sample-Models/raw/master/2.0/Duck/glTF/Duck.gltf";
+    private static final String SCENE_CACHE =
+            "file:///storage/emulated/0/Download/scene_cache.gltf";
     private void loadScene(File file){
-
-        Log.i("Net","Load: "+  Uri.fromFile(file).toString());
+        String path = "scene_cache.gltf";
+        Log.i("Net","Load: "+  file);
         ModelRenderable.builder()
                 .setSource(this, RenderableSource.builder().setSource(
                         this,
                         Uri.fromFile(file),
-                        RenderableSource.SourceType.GLTF2).build())
-                .setRegistryId(GLTF_ASSET)
+                        RenderableSource.SourceType.GLB)
+                        .setRecenterMode(RenderableSource.RecenterMode.NONE)
+                        .build())
+                .setRegistryId(file)
                 .build()
-//                .thenAccept(renderable -> originRenderable = renderable)
+                .thenAccept(renderable -> originRenderable = renderable)
                 .exceptionally(
                         throwable -> {
                             Log.i("Net","LOAD MODEL ERROR");
@@ -393,7 +376,7 @@ public class CameraTrackingActivity extends AppCompatActivity
                     sceneTransform.getRotationController().setRotationRateDegrees(0);
                     sceneTransform.setRenderable(originRenderable);
                     sceneTransform.select();
-                    sceneTransform.setWorldRotation(new Quaternion(0,0,0,1));
+                    sceneTransform.setWorldRotation(Quaternion.eulerAngles(new Vector3(0,180,0)));
 
                 });
 

@@ -50,7 +50,7 @@ public class AskSceneUpdate  extends AsyncTask<NetworkManager, Void, String> {
 
             Log.i("Net","pushing data");
 
-            items.poll(10000);
+            items.poll(50000);
 //            File f = new File();
             if (items.pollin(0)){
                 byte[] raw_data =  params[0].mNetSettings.dccChannel.recv();
@@ -65,16 +65,23 @@ public class AskSceneUpdate  extends AsyncTask<NetworkManager, Void, String> {
 //                }
                 Log.i("Net","Writing cache");
                 File path =  params[0].app.getFilesDir();
-                File file = new File(path, "scene_cache.gltf");
+                File file = new File(path,"scene_cache.glb");
+
                 FileOutputStream stream;
                 try {
                     stream = new FileOutputStream(file);
                     stream.write(raw_data);
                     stream.close();
+                    file.setExecutable(true,false);
+                    file.setReadable(true,false);
+                    file.setWritable(true,false);
+
                     callback.sendMessage(callback.obtainMessage(0));
+                    Log.i("Net","Done");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                Log.i("Net","??");
 
 //                try {
 //                    BufferedWriter bwr = new BufferedWriter(new FileWriter(new File("scene_cache.gltf")));
