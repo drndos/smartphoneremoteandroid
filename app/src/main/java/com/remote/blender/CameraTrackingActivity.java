@@ -78,19 +78,19 @@ public class CameraTrackingActivity extends AppCompatActivity
     private AnchorNode sceneNode;
     private TransformableNode sceneTransform;
     private boolean isSceneLoaded;
+    private  boolean isSceneUpdating;
     private File sceneChache;
+    private boolean isStreamingCamera;
 
     // UI vars
     private CameraTrackingFragment arFragment;
     private ImageButton cameraStreamButton;
     private ImageButton connectButton;
+    private ImageButton recordButton;
     private ModelRenderable originRenderable;
-    private LinearLayout connexionPannel;
+
 
     // Net vars
-    private boolean send_position;
-    private ZMQ.Context ctx;
-    private ZMQ.Socket push_socket;
     private NetworkManager netManager;
     private Handler netHandler = new Handler(new Handler.Callback() {
         @Override
@@ -122,8 +122,6 @@ public class CameraTrackingActivity extends AppCompatActivity
             return false;
         }
     });
-
-
     private Handler sceneUpdateHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
@@ -137,15 +135,38 @@ public class CameraTrackingActivity extends AppCompatActivity
 
                     Log.i("Net","Received scene !");
                     isSceneUpdating = false;
+
+                    break;
+                default:
+                    isSceneUpdating = false;
+                    break;
             }
 
 
                 return false;
             }
     });
-    private  boolean isSceneUpdating = false;
-    private static final String SCENE_CACHE =
-            "file:///storage/emulated/0/Download/scene_cache.gltf";
+    private Handler recordingUpdateHandler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            switch (msg.what){
+                // RECORDING
+                case 0:
+                    recordButton.setImageResource(R.drawable.round_stop_white_18dp);
+                    cameraStreamButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorError));
+                    break;
+                case 1:
+                    recordButton.setImageResource(R.drawable.round_play_arrow_white_18dp);
+                    cameraStreamButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorAccent));
+
+            }
+
+
+            return false;
+        }
+    });
+
+
     private void loadScene(File file){
         String path = "scene_cache.gltf";
         Log.i("Net","Load: "+  file);
@@ -166,6 +187,7 @@ public class CameraTrackingActivity extends AppCompatActivity
                         });
 
     }
+
     public void showConnexionDialog(){
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder.setCancelable(true);
@@ -206,6 +228,11 @@ public class CameraTrackingActivity extends AppCompatActivity
                     public void onClick(DialogInterface arg0, int arg1) {
                         Log.i("Net","Trying to disconnect");
                         netManager.disconnect();
+
+                        // Reset scene vars
+                        // TODO: make a func ?
+                        isSceneLoaded = false;
+                        isSceneUpdating = false;
                     }
                 });
 
@@ -232,14 +259,16 @@ public class CameraTrackingActivity extends AppCompatActivity
 
     public void setcameraStream(boolean state){
         if(state == false){
-            send_position = false;
+            isStreamingCamera = false;
             cameraStreamButton.setImageResource(R.drawable.round_videocam_off_white_18dp);
             cameraStreamButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimary));
+            recordButton.setVisibility(View.GONE);
         }
         else if(netManager.mState == 2){
-            send_position = true;
+            isStreamingCamera = true;
             cameraStreamButton.setImageResource(R.drawable.round_videocam_white_18dp);
             cameraStreamButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorOnline));
+            recordButton.setVisibility(View.VISIBLE);
         }
         else{
             Toast.makeText(CameraTrackingActivity.this,
@@ -266,11 +295,22 @@ public class CameraTrackingActivity extends AppCompatActivity
 
     public void onClickButtoncameraStreamButton(View v)
     {
-        if(send_position){
+        if(isStreamingCamera){
             setcameraStream(false);
         }
         else{
             setcameraStream(true);
+        }
+    }
+
+    public void requestRecordCamera(View v){
+        if(netManager.mState == 2 && !isSceneUpdating &&  isStreamingCamera) {
+            new AskCameraRecord(recordingUpdateHandler).execute(netManager);
+            Toast.makeText(CameraTrackingActivity.this, "request scene update launched", Toast.LENGTH_LONG).show();
+            isSceneUpdating = true;
+        }
+        else{
+            Toast.makeText(CameraTrackingActivity.this, "Cannot request scene update now", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -291,25 +331,7 @@ public class CameraTrackingActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        String ip = "none";
-
-        try {
-            Enumeration networkInterfaces = NetworkInterface.getNetworkInterfaces();  // gets All networkInterfaces of your device
-            while (networkInterfaces.hasMoreElements()) {
-                NetworkInterface inet = (NetworkInterface) networkInterfaces.nextElement();
-                Enumeration address = inet.getInetAddresses();
-                while (address.hasMoreElements()) {
-                    InetAddress inetAddress = (InetAddress) address.nextElement();
-                    if (inetAddress.isSiteLocalAddress()) {
-                        System.out.println("Your ip: " + inetAddress.getHostAddress());  /// gives ip address of your device
-                    }
-                }
-            }
-        } catch (Exception e) {
-            // Handle Exception
-        }
         WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
-
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
@@ -323,14 +345,13 @@ public class CameraTrackingActivity extends AppCompatActivity
         arFragment = (CameraTrackingFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
         cameraStreamButton = (ImageButton)findViewById(R.id.stream_camera);
         connectButton = (ImageButton)findViewById(R.id.connect);
-
+        recordButton = (ImageButton)findViewById(R.id.recordButton);
 
         // Net setup
         netManager = new NetworkManager(netHandler,wifiManager,this);
 
 
         // ASSETS SETUP
-
         File path =  netManager.app.getFilesDir();
         sceneChache = new File(path,"scene_cache.glb");
         // When you build a Renderable, Sceneform loads its resources in the background while returning
@@ -348,7 +369,10 @@ public class CameraTrackingActivity extends AppCompatActivity
                         return null;
                     });
 
-        // AR EVENTS
+        // AR
+        isSceneUpdating = false;
+        isSceneLoaded = false;
+
         arFragment.getArSceneView().getScene().addOnUpdateListener(this);
         arFragment.setOnTapArPlaneListener(
                 (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
@@ -393,7 +417,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         if(sceneAnchor != null){
             Camera camera = arFragment.getArSceneView().getArFrame().getCamera();
 
-            if (camera.getTrackingState() == TrackingState.TRACKING && send_position) {
+            if (camera.getTrackingState() == TrackingState.TRACKING && isStreamingCamera) {
                 try {
                     ZMsg message_buffer = new ZMsg();
 
