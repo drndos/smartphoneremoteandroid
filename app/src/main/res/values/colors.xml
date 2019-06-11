@@ -7,6 +7,7 @@
     <color name="colorError">#A20000</color>
     <color name="colorIdle">#003AAE</color>
     <color name="colorTransp">#00FFFFFF</color>
+    <color name="colorWaiting">#F9AC48</color>
 </resources>
 
 

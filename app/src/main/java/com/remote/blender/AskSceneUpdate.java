@@ -46,14 +46,17 @@ public class AskSceneUpdate  extends AsyncTask<NetworkManager, Void, String> {
             ZMQ.Poller items = params[0].mNetSettings.ctx.poller(1);
             items.register(params[0].mNetSettings.dccChannel, ZMQ.Poller.POLLIN);
 
-            params[0].mNetSettings.dccChannel.send("SCENE");
+            ZMsg scene_request = new ZMsg();
+            scene_request.add("SCENE");
 
-            Log.i("Net","pushing data");
+            scene_request.send(params[0].mNetSettings.dccChannel);
+            Log.i("Net","send scene update request");
 
             items.poll(50000);
 //            File f = new File();
             if (items.pollin(0)){
-                byte[] raw_data =  params[0].mNetSettings.dccChannel.recv();
+                ZMsg scene_request_response = ZMsg.recvMsg(params[0].mNetSettings.dccChannel);
+                byte[] raw_data =  scene_request_response.getLast().getData();//params[0].mNetSettings.dccChannel.recv();
 //                Log.i("Net","getting something !");
 //                MessageUnpacker unpacker = MessagePack.newDefaultUnpacker(raw_data);
 //                Log.i("Net","unpacking");

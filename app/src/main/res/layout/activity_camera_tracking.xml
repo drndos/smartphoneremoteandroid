@@ -44,13 +44,13 @@
         android:id="@+id/syncSceneButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
         android:clickable="true"
         android:onClick="requestSceneUpdate"
         app:backgroundTint="@color/colorPrimary"
-        app:layout_constraintBottom_toTopOf="@+id/stream_camera"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/round_sync_white_18dp" />
 
     <SeekBar
@@ -76,7 +76,7 @@
         android:clickable="true"
         android:onClick="requestRecordCamera"
         android:visibility="gone"
-        app:backgroundTint="@color/colorAccent"
+        app:backgroundTint="@color/colorPrimary"
         app:layout_constraintBottom_toBottomOf="@+id/ux_fragment"
         app:layout_constraintEnd_toEndOf="@+id/ux_fragment"
         app:layout_constraintHorizontal_bias="0.498"

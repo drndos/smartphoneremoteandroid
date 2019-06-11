@@ -78,7 +78,7 @@ public class CameraTrackingActivity extends AppCompatActivity
     private AnchorNode sceneNode;
     private TransformableNode sceneTransform;
     private boolean isSceneLoaded;
-    private  boolean isSceneUpdating;
+    private boolean isSceneUpdating;
     private File sceneChache;
     private boolean isStreamingCamera;
 
@@ -87,6 +87,7 @@ public class CameraTrackingActivity extends AppCompatActivity
     private ImageButton cameraStreamButton;
     private ImageButton connectButton;
     private ImageButton recordButton;
+    private ImageButton updateSceneButton;
     private ModelRenderable originRenderable;
 
 
@@ -125,27 +126,37 @@ public class CameraTrackingActivity extends AppCompatActivity
     private Handler sceneUpdateHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
-            switch (msg.what){
-                // STATE MESSAGE
-                case 0:
-                    int length = (int) sceneChache.length();
-                    Log.i("Net",String.valueOf(length));
 
-                    loadScene(sceneChache);
-
-                    Log.i("Net","Received scene !");
-                    isSceneUpdating = false;
-
-                    break;
-                default:
-                    isSceneUpdating = false;
-                    break;
-            }
 
 
                 return false;
             }
     });
+
+    private void setSceneUpdateStatus(int status){
+        switch (status){
+            // STATE MESSAGE
+            case 0:
+                int length = (int) sceneChache.length();
+                Log.i("Net",String.valueOf(length));
+
+                loadScene(sceneChache);
+                updateSceneButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimary));
+                Log.i("Net","Received scene !");
+                isSceneUpdating = false;
+
+                break;
+            case 1:
+                updateSceneButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorError));
+                isSceneUpdating = false;
+                break;
+
+            case 2:
+                updateSceneButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorWaiting));
+                isSceneUpdating = true;
+                break;
+        }
+    }
     private Handler recordingUpdateHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
@@ -153,11 +164,11 @@ public class CameraTrackingActivity extends AppCompatActivity
                 // RECORDING
                 case 0:
                     recordButton.setImageResource(R.drawable.round_stop_white_18dp);
-                    cameraStreamButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorError));
+                    recordButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorError));
                     break;
                 case 1:
                     recordButton.setImageResource(R.drawable.round_play_arrow_white_18dp);
-                    cameraStreamButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorAccent));
+                    recordButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimary));
 
             }
 
@@ -306,19 +317,18 @@ public class CameraTrackingActivity extends AppCompatActivity
     public void requestRecordCamera(View v){
         if(netManager.mState == 2 && !isSceneUpdating &&  isStreamingCamera) {
             new AskCameraRecord(recordingUpdateHandler).execute(netManager);
-            Toast.makeText(CameraTrackingActivity.this, "request scene update launched", Toast.LENGTH_LONG).show();
-            isSceneUpdating = true;
         }
         else{
-            Toast.makeText(CameraTrackingActivity.this, "Cannot request scene update now", Toast.LENGTH_LONG).show();
+
         }
     }
 
     public void requestSceneUpdate(View v){
         if(netManager.mState == 2 && !isSceneUpdating ) {
+
             new AskSceneUpdate(sceneUpdateHandler).execute(netManager);
-            Toast.makeText(CameraTrackingActivity.this, "request scene update launched", Toast.LENGTH_LONG).show();
-            isSceneUpdating = true;
+
+            setSceneUpdateStatus(2);
         }
         else{
             Toast.makeText(CameraTrackingActivity.this, "Cannot request scene update now", Toast.LENGTH_LONG).show();
@@ -346,6 +356,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         cameraStreamButton = (ImageButton)findViewById(R.id.stream_camera);
         connectButton = (ImageButton)findViewById(R.id.connect);
         recordButton = (ImageButton)findViewById(R.id.recordButton);
+        updateSceneButton = (ImageButton)findViewById(R.id.syncSceneButton);
 
         // Net setup
         netManager = new NetworkManager(netHandler,wifiManager,this);
@@ -354,6 +365,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         // ASSETS SETUP
         File path =  netManager.app.getFilesDir();
         sceneChache = new File(path,"scene_cache.glb");
+
         // When you build a Renderable, Sceneform loads its resources in the background while returning
         // a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
         ModelRenderable.builder()

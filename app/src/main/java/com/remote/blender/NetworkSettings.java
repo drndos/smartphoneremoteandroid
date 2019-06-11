@@ -37,7 +37,7 @@ public class NetworkSettings {
 
 
         stateChannel = ctx.socket(SocketType.REQ);
-        dccChannel = ctx.socket(SocketType.REQ);
+        dccChannel = ctx.socket(SocketType.DEALER);
         arChannel = ctx.socket(SocketType.PUSH);
 
 
