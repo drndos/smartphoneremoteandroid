@@ -127,7 +127,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         @Override
         public boolean handleMessage(Message msg) {
 
-
+                setSceneUpdateStatus(msg.what);
 
                 return false;
             }

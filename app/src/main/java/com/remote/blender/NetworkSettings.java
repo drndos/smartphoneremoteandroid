@@ -37,12 +37,14 @@ public class NetworkSettings {
 
 
         stateChannel = ctx.socket(SocketType.REQ);
-        dccChannel = ctx.socket(SocketType.DEALER);
+//        dccChannel = ctx.socket(SocketType.REQ);
         arChannel = ctx.socket(SocketType.PUSH);
 
+        String id = "APP";
+//        dccChannel.setIdentity(id.getBytes(ZMQ.CHARSET));
 
         stateChannel.connect(String.format("tcp://%s:%d",address,stateChannelPort));
-        dccChannel.connect(String.format("tcp://%s:%d",address,dccChannelPort));
+//        dccChannel.connect(String.format("tcp://%s:%d",address,dccChannelPort));
         arChannel.connect(String.format("tcp://%s:%d",address,arChannelPort));
 
 

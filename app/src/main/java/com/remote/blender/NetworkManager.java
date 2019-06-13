@@ -22,7 +22,7 @@ public class NetworkManager {
     private final int STATE_ONLINE = 2;
 
     public int mState = STATE_IDLE;
-    private String mAddress;
+    public String mAddress;
 
     private Handler netHandler;
     private NetworkDaemon mNetDaemon;

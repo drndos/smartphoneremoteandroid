@@ -4,6 +4,7 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import android.util.Log;
 
+import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
@@ -13,66 +14,79 @@ import java.io.IOException;
 
 public class AskCameraRecord extends AsyncTask<NetworkManager, Void, String> {
         private Handler callback;
+        private ZMQ.Socket link;
+
         public AskCameraRecord(Handler callback) {
             this.callback = callback;
         }
 
         @Override
         protected String doInBackground(NetworkManager... params) {
-            String scene = "NONE";
-            ZMQ.Poller items = params[0].mNetSettings.ctx.poller(1);
-            items.register(params[0].mNetSettings.dccChannel, ZMQ.Poller.POLLIN);
-            boolean is_recording = false;
+            try(ZMQ.Context ctx = ZMQ.context(1)) {
 
-            ZMsg request = new ZMsg();
-            request.add("RECORD");
-            request.add("START");
-            request.send(params[0].mNetSettings.dccChannel);
+                // STEP 0: Setup net wire
+                Log.i("Net","AskScene socket");
+                link = ctx.socket(SocketType.DEALER);
+                String identity = "AskScene";
+                link.setIdentity(identity.getBytes(ZMQ.CHARSET));
+                link.connect(String.format("tcp://%s:%d",params[0].mAddress,5559));
+                link.setImmediate(true);
+                ZMQ.Poller items = ctx.poller(1);
+                items.register(link, ZMQ.Poller.POLLIN);
 
-            Log.i("Net","request record start");
 
+                // STEP 1: Ask to start the camera recording
+                boolean is_recording = false;
+                ZMsg request = new ZMsg();
+                request.add("RECORD");
+                request.add("START");
+                request.send(link);
 
-            items.poll(5000);
+                Log.i("Net", "request record start");
+                items.poll(5000);
 
-            if (items.pollin(0)){
-                ZMsg raw_data =  ZMsg.recvMsg(params[0].mNetSettings.dccChannel);
-
-                String header =  raw_data.pop().toString();
-                Log.i("Net",header);
-
-                if (header.contains("RECORD")){
-                    is_recording = true;
-                }
-                else{
-                    callback.sendMessage(callback.obtainMessage(1,raw_data));
-                    return "Done";
-                }
-
-            }
-            else{
-                Log.i("Net","Fail to start camera record");
-                callback.sendMessage(callback.obtainMessage(1));
-            }
-
-            callback.sendMessage(callback.obtainMessage(0,"started"));
-            is_recording = true;
-            while (is_recording){
-                ZMsg frame_request = new ZMsg();
-                frame_request.add("RECORD");
-                frame_request.add("STATE");
-                frame_request.send(params[0].mNetSettings.dccChannel);
-
-                items.poll(2000);
+                // STEP 2 : Wait for the response from blender
                 if (items.pollin(0)) {
-                    ZMsg frame_record = ZMsg.recvMsg(params[0].mNetSettings.dccChannel);
+                    ZMsg raw_data = ZMsg.recvMsg(link);
 
-                    String record_statut =  frame_record.getLast().toString();
-                    Log.i("Net", "Recording: " + record_statut);
+                    String header = raw_data.getLast().toString();
+                    Log.i("Net", header);
+                    raw_data.destroy();
+                    if (header.contains("STARTED")) {
+                        is_recording = true;
+                        callback.sendMessage(callback.obtainMessage(0, "started"));
+                    } else {
+                        callback.sendMessage(callback.obtainMessage(1, raw_data));
+                        return "Done";
+                    }
 
+                } else {
+                    Log.i("Net", "Fail to start camera record");
+                    callback.sendMessage(callback.obtainMessage(1));
                 }
-                else{
-                    is_recording = false;
-                    callback.sendMessage(callback.obtainMessage(1,"fail"));
+
+
+
+                //STEP 3: if the record as started, update the status
+                while (is_recording) {
+                    ZMsg frame_request = new ZMsg();
+                    frame_request.add("RECORD");
+                    frame_request.add("STATE");
+                    frame_request.send(params[0].mNetSettings.dccChannel);
+
+
+                    items.poll(3000);
+                    if (items.pollin(0)) {
+                        ZMsg frame_record = ZMsg.recvMsg(params[0].mNetSettings.dccChannel);
+
+                        String record_statut = frame_record.getLast().toString();
+                        Log.i("Net", "Recording: " + record_statut);
+
+                    } else {
+                        is_recording = false;
+                        callback.sendMessage(callback.obtainMessage(1, "fail"));
+                    }
+                    frame_request.destroy();
                 }
             }
 
