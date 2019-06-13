@@ -2,6 +2,7 @@ package com.remote.blender;
 
 import android.os.AsyncTask;
 import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 
 import org.zeromq.SocketType;
@@ -13,14 +14,41 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class AskCameraRecord extends AsyncTask<NetworkManager, Void, String> {
-        private Handler callback;
-        private ZMQ.Socket link;
+    private Handler callback;
 
-        public AskCameraRecord(Handler callback) {
-            this.callback = callback;
-        }
-
+    private Handler input = new Handler(new Handler.Callback() {
         @Override
+        public boolean handleMessage(Message msg){
+            ZMsg request = new ZMsg();
+            request.add("RECORD");
+            request.add("STOP");
+            request.send(link);
+            return true;
+        }
+    });
+    private ZMQ.Socket link;
+    private  boolean  is_recording;
+
+    public AskCameraRecord(Handler callback) {
+        this.callback = callback;
+        input= this.input;
+    }
+
+    @Override
+    protected void onCancelled() {
+        is_recording = false;
+
+        ZMsg request = new ZMsg();
+        request.add("RECORD");
+        request.add("STOP");
+        request.send(link);
+
+        is_recording = false;
+        callback.sendMessage(callback.obtainMessage(2, "success"));
+    }
+
+
+    @Override
         protected String doInBackground(NetworkManager... params) {
             try(ZMQ.Context ctx = ZMQ.context(1)) {
 
@@ -72,16 +100,20 @@ public class AskCameraRecord extends AsyncTask<NetworkManager, Void, String> {
                     ZMsg frame_request = new ZMsg();
                     frame_request.add("RECORD");
                     frame_request.add("STATE");
-                    frame_request.send(params[0].mNetSettings.dccChannel);
+                    frame_request.send(link);
 
 
                     items.poll(3000);
                     if (items.pollin(0)) {
-                        ZMsg frame_record = ZMsg.recvMsg(params[0].mNetSettings.dccChannel);
+                        ZMsg frame_record = ZMsg.recvMsg(link);
 
                         String record_statut = frame_record.getLast().toString();
                         Log.i("Net", "Recording: " + record_statut);
 
+                        if(record_statut.contains("STOPPED")){
+                            is_recording = false;
+                            callback.sendMessage(callback.obtainMessage(2, "success"));
+                        }
                     } else {
                         is_recording = false;
                         callback.sendMessage(callback.obtainMessage(1, "fail"));

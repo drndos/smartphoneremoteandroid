@@ -106,14 +106,14 @@ public class AskSceneUpdate  extends AsyncTask<NetworkManager, Void, String> {
                 } else {
                     Log.i("Net", "Nothing");
 
-                    callback.sendMessage(callback.obtainMessage(0));
+                    callback.sendMessage(callback.obtainMessage(1));
                 }
 
                 link.close();
                 ctx.close();
             }
 
-            callback.sendMessage(callback.obtainMessage(1));
+
             return "Done";
         }
 

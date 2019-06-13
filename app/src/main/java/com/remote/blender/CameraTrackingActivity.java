@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
@@ -79,8 +80,10 @@ public class CameraTrackingActivity extends AppCompatActivity
     private TransformableNode sceneTransform;
     private boolean isSceneLoaded;
     private boolean isSceneUpdating;
+    private boolean isRecording;
     private File sceneChache;
     private boolean isStreamingCamera;
+    private int mode = Constants.CAMERA_MODE;
 
     // UI vars
     private CameraTrackingFragment arFragment;
@@ -169,14 +172,20 @@ public class CameraTrackingActivity extends AppCompatActivity
                 case 1:
                     recordButton.setImageResource(R.drawable.round_play_arrow_white_18dp);
                     recordButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimary));
-
+                    isRecording = false;
+                    break;
+                case 2:
+                    recordButton.setImageResource(R.drawable.round_play_arrow_white_18dp);
+                    recordButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimary));
+                    isRecording = false;
+                    break;
             }
 
 
             return false;
         }
     });
-
+    private AsyncTask recordTask;
 
     private void loadScene(File file){
         String path = "scene_cache.gltf";
@@ -315,11 +324,16 @@ public class CameraTrackingActivity extends AppCompatActivity
     }
 
     public void requestRecordCamera(View v){
-        if(netManager.mState == 2 && !isSceneUpdating &&  isStreamingCamera) {
-            new AskCameraRecord(recordingUpdateHandler).execute(netManager);
+        if(netManager.mState == 2 && !isSceneUpdating &&  isStreamingCamera && !isRecording) {
+            isRecording = true;
+            recordTask = new AskCameraRecord(recordingUpdateHandler).execute(netManager);
+        }
+        else if(netManager.mState == 2 && !isSceneUpdating &&  isStreamingCamera && isRecording){
+            recordTask.cancel(true);
+            Log.i("Net","Try to stop recording");
         }
         else{
-
+            Toast.makeText(CameraTrackingActivity.this, "Cannot record now", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -384,6 +398,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         // AR
         isSceneUpdating = false;
         isSceneLoaded = false;
+        isRecording = false;
 
         arFragment.getArSceneView().getScene().addOnUpdateListener(this);
         arFragment.setOnTapArPlaneListener(
