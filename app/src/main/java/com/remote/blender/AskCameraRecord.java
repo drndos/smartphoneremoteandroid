@@ -97,7 +97,10 @@ public class AskCameraRecord extends AsyncTask<String, Void, String> {
 
                 if(record_statut.contains("STOPPED")){
                     is_recording = false;
-                    callback.sendMessage(callback.obtainMessage(2, "success"));
+                    callback.sendMessage(callback.obtainMessage(2, "fail"));
+                }
+                else{
+                    callback.sendMessage(callback.obtainMessage(2, record_statut));
                 }
             } else {
                 is_recording = false;

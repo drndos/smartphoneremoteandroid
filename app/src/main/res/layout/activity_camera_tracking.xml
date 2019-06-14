@@ -13,7 +13,7 @@
         android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0" />
@@ -83,7 +83,7 @@
         app:backgroundTint="@color/colorPrimary"
         app:layout_constraintBottom_toBottomOf="@+id/ux_fragment"
         app:layout_constraintEnd_toEndOf="@+id/ux_fragment"
-        app:layout_constraintHorizontal_bias="0.554"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="@+id/ux_fragment"
         app:layout_constraintTop_toTopOf="@+id/ux_fragment"
         app:layout_constraintVertical_bias="1.0"
@@ -101,5 +101,35 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/round_category_white_18dp" />
+
+    <ProgressBar
+        android:id="@+id/taskProgress"
+        style="@android:style/Widget.Material.ProgressBar.Horizontal"
+        android:layout_width="202dp"
+        android:layout_height="20dp"
+        android:layout_marginBottom="84dp"
+        android:indeterminate="false"
+        android:max="250"
+        android:progress="0"
+        android:progressTint="@color/colorError"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/ux_fragment"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/currentFrame"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="0"
+        android:textColor="@color/colorError"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/taskProgress"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </android.support.constraint.ConstraintLayout>

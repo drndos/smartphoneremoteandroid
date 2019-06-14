@@ -26,7 +26,9 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.blenderremote.R;
@@ -86,6 +88,7 @@ public class CameraTrackingActivity extends AppCompatActivity
     private int mode = Constants.CAMERA_MODE;
     private AskCameraRecord recordTask;
     private AsyncTask cameraRecordTask;
+
     // UI vars
     private CameraTrackingFragment arFragment;
     private ImageButton cameraStreamButton;
@@ -93,6 +96,8 @@ public class CameraTrackingActivity extends AppCompatActivity
     private ImageButton recordButton;
     private ImageButton updateSceneButton;
     private ModelRenderable originRenderable;
+    private ProgressBar taskProgress;
+    private TextView currentRecordedFrame;
 
 
     // Net vars
@@ -143,6 +148,9 @@ public class CameraTrackingActivity extends AppCompatActivity
                 case 0:
                     recordButton.setImageResource(R.drawable.round_stop_white_18dp);
                     recordButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorError));
+                    taskProgress.setVisibility(View.VISIBLE);
+                    taskProgress.setMax(250);
+                    currentRecordedFrame.setVisibility(View.VISIBLE);
                     break;
                 //STOPPED
                 case 1:
@@ -150,9 +158,18 @@ public class CameraTrackingActivity extends AppCompatActivity
                     recordButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimary));
                     isRecording = false;
                     cameraRecordTask.cancel(true);
+                    taskProgress.setVisibility(View.GONE);
+                    currentRecordedFrame.setVisibility(View.GONE);
+
                     break;
                 //RECORDING UPDATE
                 case 2:
+                    try{
+                        taskProgress.setProgress(Integer.parseInt((String)msg.obj));
+                        currentRecordedFrame.setText((String)msg.obj);
+                    }catch (Exception e){
+                        Log.i("Net","Cast frame int error");
+                    }
 
                     break;
             }
@@ -187,7 +204,6 @@ public class CameraTrackingActivity extends AppCompatActivity
     }
 
 
-
     private void loadScene(File file){
         String path = "scene_cache.gltf";
         Log.i("Net","Load: "+  file);
@@ -214,6 +230,7 @@ public class CameraTrackingActivity extends AppCompatActivity
                         });
 
     }
+
 
     public void showConnexionDialog(){
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
@@ -245,6 +262,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         alertDialog.show();
     }
 
+
     public void showDeconnexionDialog(){
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder.setCancelable(true);
@@ -273,6 +291,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         AlertDialog alertDialog = alertDialogBuilder.create();
         alertDialog.show();
     }
+
 
     public void onClickButtonConnexion(View v)
     {
@@ -303,6 +322,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         }
     }
 
+
     public void updateConnectButtonStatus(int status){
         switch (status){
             case 0:
@@ -320,6 +340,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         }
     }
 
+
     public void onClickButtoncameraStreamButton(View v)
     {
         if(isStreamingCamera){
@@ -329,6 +350,7 @@ public class CameraTrackingActivity extends AppCompatActivity
             setcameraStream(true);
         }
     }
+
 
     public void requestRecordCamera(View v){
         if(netManager.mState == 2 && !isSceneUpdating &&  isStreamingCamera && !isRecording) {
@@ -346,6 +368,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         }
     }
 
+
     public void requestSceneUpdate(View v){
         if(netManager.mState == 2 && !isSceneUpdating ) {
 
@@ -357,15 +380,14 @@ public class CameraTrackingActivity extends AppCompatActivity
             Toast.makeText(CameraTrackingActivity.this, "Cannot request scene update now", Toast.LENGTH_LONG).show();
         }
     }
+
+
     @Override
-    @SuppressWarnings({"AndroidApiChecker", "FutureReturnValueIgnored"})
-    // CompletableFuture requires api level 24
-    // FutureReturnValueIgnored is not valid
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // General setup
         WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
-
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
@@ -380,6 +402,8 @@ public class CameraTrackingActivity extends AppCompatActivity
         connectButton = (ImageButton)findViewById(R.id.connect);
         recordButton = (ImageButton)findViewById(R.id.recordButton);
         updateSceneButton = (ImageButton)findViewById(R.id.syncSceneButton);
+        taskProgress = (ProgressBar)findViewById(R.id.taskProgress);
+        currentRecordedFrame = (TextView)findViewById(R.id.currentFrame);
 
         // Net setup
         netManager = new NetworkManager(netHandler,wifiManager,this);
@@ -409,6 +433,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         isSceneLoaded = false;
         isRecording = false;
 
+
         arFragment.getArSceneView().getScene().addOnUpdateListener(this);
         arFragment.setOnTapArPlaneListener(
                 (HitResult hitResult, Plane plane, MotionEvent motionEvent) -> {
@@ -432,14 +457,14 @@ public class CameraTrackingActivity extends AppCompatActivity
 
                     sceneNode.setParent(arFragment.getArSceneView().getScene());
 
-                    // Create the transformable andy and add it to the anchor.
-
+                    // Create the transformable and add it to the anchor.
                     sceneTransform = new TransformableNode(arFragment.getTransformationSystem());
                     sceneTransform.getScaleController().setMaxScale(10);
-                    sceneTransform.getScaleController().setMinScale(1);
+                    sceneTransform.getScaleController().setMinScale((float)0.1);
                     sceneTransform.setParent(sceneNode);
                     sceneTransform.getRotationController().setRotationRateDegrees(0);
                     sceneTransform.setRenderable(originRenderable);
+                    originRenderable.setShadowCaster(false);
                     sceneTransform.select();
                     sceneTransform.setWorldRotation(Quaternion.eulerAngles(new Vector3(0,180,0)));
 
