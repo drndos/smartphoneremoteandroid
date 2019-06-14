@@ -12,7 +12,7 @@ public class NetworkSettings {
     private final int arChannelPort = 5558;
     private final int dccChannelPort = 5559;
 
-    public final int stateTimout = 100;
+    public final int stateTimout = 2000;
 
     public ZMQ.Context ctx;
     public ZMQ.Socket stateChannel;
@@ -40,7 +40,7 @@ public class NetworkSettings {
 //        dccChannel = ctx.socket(SocketType.REQ);
         arChannel = ctx.socket(SocketType.PUSH);
 
-        String id = "APP";
+//        String id = "APP";
 //        dccChannel.setIdentity(id.getBytes(ZMQ.CHARSET));
 
         stateChannel.connect(String.format("tcp://%s:%d",address,stateChannelPort));

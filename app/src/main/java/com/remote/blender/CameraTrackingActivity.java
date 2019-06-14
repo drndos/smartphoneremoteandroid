@@ -84,7 +84,8 @@ public class CameraTrackingActivity extends AppCompatActivity
     private File sceneChache;
     private boolean isStreamingCamera;
     private int mode = Constants.CAMERA_MODE;
-
+    private AskCameraRecord recordTask;
+    private AsyncTask cameraRecordTask;
     // UI vars
     private CameraTrackingFragment arFragment;
     private ImageButton cameraStreamButton;
@@ -129,12 +130,38 @@ public class CameraTrackingActivity extends AppCompatActivity
     private Handler sceneUpdateHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
-
                 setSceneUpdateStatus(msg.what);
 
                 return false;
             }
     });
+    private Handler recordingUpdateHandler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            switch (msg.what){
+                //RECORDING
+                case 0:
+                    recordButton.setImageResource(R.drawable.round_stop_white_18dp);
+                    recordButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorError));
+                    break;
+                //STOPPED
+                case 1:
+                    recordButton.setImageResource(R.drawable.round_play_arrow_white_18dp);
+                    recordButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimary));
+                    isRecording = false;
+                    cameraRecordTask.cancel(true);
+                    break;
+                //RECORDING UPDATE
+                case 2:
+
+                    break;
+            }
+
+
+            return false;
+        }
+    });
+
 
     private void setSceneUpdateStatus(int status){
         switch (status){
@@ -142,10 +169,8 @@ public class CameraTrackingActivity extends AppCompatActivity
             case 0:
                 int length = (int) sceneChache.length();
                 Log.i("Net",String.valueOf(length));
-
                 loadScene(sceneChache);
                 updateSceneButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimary));
-                Log.i("Net","Received scene !");
                 isSceneUpdating = false;
 
                 break;
@@ -160,32 +185,8 @@ public class CameraTrackingActivity extends AppCompatActivity
                 break;
         }
     }
-    private Handler recordingUpdateHandler = new Handler(new Handler.Callback() {
-        @Override
-        public boolean handleMessage(Message msg) {
-            switch (msg.what){
-                // RECORDING
-                case 0:
-                    recordButton.setImageResource(R.drawable.round_stop_white_18dp);
-                    recordButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorError));
-                    break;
-                case 1:
-                    recordButton.setImageResource(R.drawable.round_play_arrow_white_18dp);
-                    recordButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimary));
-                    isRecording = false;
-                    break;
-                case 2:
-                    recordButton.setImageResource(R.drawable.round_play_arrow_white_18dp);
-                    recordButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimary));
-                    isRecording = false;
-                    break;
-            }
 
 
-            return false;
-        }
-    });
-    private AsyncTask recordTask;
 
     private void loadScene(File file){
         String path = "scene_cache.gltf";
@@ -199,7 +200,13 @@ public class CameraTrackingActivity extends AppCompatActivity
                         .build())
                 .setRegistryId(file)
                 .build()
-                .thenAccept(renderable -> originRenderable = renderable)
+                .thenAccept(
+                        (renderable) -> {
+                            originRenderable = renderable;
+                            if (sceneTransform != null){
+                                sceneTransform.setRenderable(originRenderable);
+                            }
+                        })
                 .exceptionally(
                         throwable -> {
                             Log.i("Net","LOAD MODEL ERROR");
@@ -326,10 +333,12 @@ public class CameraTrackingActivity extends AppCompatActivity
     public void requestRecordCamera(View v){
         if(netManager.mState == 2 && !isSceneUpdating &&  isStreamingCamera && !isRecording) {
             isRecording = true;
-            recordTask = new AskCameraRecord(recordingUpdateHandler).execute(netManager);
+            recordTask = new AskCameraRecord(recordingUpdateHandler, netManager.mAddress);
+            cameraRecordTask = recordTask.execute("sdasd");
         }
         else if(netManager.mState == 2 && !isSceneUpdating &&  isStreamingCamera && isRecording){
-            recordTask.cancel(true);
+//            recordTask.cancel(true);
+            recordTask.stopRecord();
             Log.i("Net","Try to stop recording");
         }
         else{

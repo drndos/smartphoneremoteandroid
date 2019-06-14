@@ -69,12 +69,16 @@ public class AskSceneUpdate  extends AsyncTask<NetworkManager, Void, String> {
             try(ZMQ.Context ctx = ZMQ.context(1)) {
 
                 // STEP 0: Setup net wire
-                Log.i("Net","AskScene socket");
+                Log.i("Net","AskScene: connecting...");
                 link = ctx.socket(SocketType.DEALER);
                 String identity = "AskScene";
                 link.setIdentity(identity.getBytes(ZMQ.CHARSET));
-                link.connect(String.format("tcp://%s:%d",params[0].mAddress,5559));
                 link.setImmediate(true);
+                link.connect(String.format("tcp://%s:%d",params[0].mAddress,5559));
+
+                Log.i("Net","AskScene: done.");
+
+
                 ZMQ.Poller items = ctx.poller(1);
                 items.register(link, ZMQ.Poller.POLLIN);
 
@@ -112,7 +116,6 @@ public class AskSceneUpdate  extends AsyncTask<NetworkManager, Void, String> {
                 link.close();
                 ctx.close();
             }
-
 
             return "Done";
         }
