@@ -371,10 +371,10 @@ public class CameraTrackingActivity extends AppCompatActivity
 
     public void requestSceneUpdate(View v){
         if(netManager.mState == 2 && !isSceneUpdating ) {
-
+            setSceneUpdateStatus(2);
             new AskSceneUpdate(sceneUpdateHandler).execute(netManager);
 
-            setSceneUpdateStatus(2);
+
         }
         else{
             Toast.makeText(CameraTrackingActivity.this, "Cannot request scene update now", Toast.LENGTH_LONG).show();

@@ -54,7 +54,6 @@ public class AskSceneUpdate  extends AsyncTask<NetworkManager, Void, String> {
                 file.setReadable(true,false);
                 file.setWritable(true,false);
 
-                callback.sendMessage(callback.obtainMessage(0));
                 Log.i("Net","Done");
 
                 return true;
@@ -91,7 +90,7 @@ public class AskSceneUpdate  extends AsyncTask<NetworkManager, Void, String> {
                 Log.i("Net", "send scene update request");
 
 
-                items.poll(10000);
+                items.poll(25000);
                 if (items.pollin(0)) {
 
                     // Read raw data
@@ -104,6 +103,7 @@ public class AskSceneUpdate  extends AsyncTask<NetworkManager, Void, String> {
                     File file = new File(path, "scene_cache.glb");
 
                     if (writeScene(file, raw_data)) {
+                        Log.i("Net", "Send msg to callback");
                         callback.sendMessage(callback.obtainMessage(0));
                     }
 
