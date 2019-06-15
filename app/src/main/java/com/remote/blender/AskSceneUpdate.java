@@ -27,6 +27,7 @@ import org.zeromq.ZMsg;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -38,10 +39,13 @@ import java.nio.charset.StandardCharsets;
 public class AskSceneUpdate  extends AsyncTask<NetworkManager, Void, String> {
         private Handler callback;
         private ZMQ.Socket link;
+        private boolean isSceneReceived;
+
 
         public AskSceneUpdate(Handler callback) {
             this.callback = callback;
             Log.i("Net","AskScene task setup");
+            isSceneReceived=false;
         }
 
         private boolean writeScene(File file,byte[] sceneData){
@@ -66,10 +70,14 @@ public class AskSceneUpdate  extends AsyncTask<NetworkManager, Void, String> {
         @Override
         protected String doInBackground(NetworkManager... params) {
             try(ZMQ.Context ctx = ZMQ.context(1)) {
+                int total = 0;
+                int chunks = 0;
+                ByteArrayOutputStream fileStream = new ByteArrayOutputStream( );
 
                 // STEP 0: Setup net wire
                 Log.i("Net","AskScene: connecting...");
                 link = ctx.socket(SocketType.DEALER);
+
                 String identity = "AskScene";
                 link.setIdentity(identity.getBytes(ZMQ.CHARSET));
                 link.setImmediate(true);
@@ -83,38 +91,81 @@ public class AskSceneUpdate  extends AsyncTask<NetworkManager, Void, String> {
 
                 // STEP 1: Send scene request
                 Log.i("Net","AskScene: request send");
-                ZMsg scene_request = new ZMsg();
-                scene_request.add("SCENE");
-                scene_request.send(link);
+
 
                 Log.i("Net", "send scene update request");
 
+                while (!isSceneReceived){
+                    ZMsg scene_request = new ZMsg();
+                    scene_request.add("SCENE");
+                    scene_request.add(String.valueOf(total));
+                    scene_request.add(String.valueOf(Constants.CHUNK_SIZE));
+                    scene_request.send(link);
 
-                items.poll(25000);
-                if (items.pollin(0)) {
+                    items.poll(25000);
+                    if (items.pollin(0)) {
+                        ZMsg answer =  ZMsg.recvMsg(link);
+                        byte[] chunk = answer.getLast().getData();
 
-                    // Read raw data
-                    Log.i("Net", "recv something");
-                    ZMsg answer =  ZMsg.recvMsg(link);
-                    byte[] raw_data = answer.getLast().getData();
+                        fileStream.write(chunk);
+                        chunks += 1;
+                        int size = chunk.length;
+                        total += size;
 
-                    // Generating file dir
-                    File path = params[0].app.getFilesDir();
-                    File file = new File(path, "scene_cache.glb");
+                        Log.i("Net", "Load "+total);
 
-                    if (writeScene(file, raw_data)) {
-                        Log.i("Net", "Send msg to callback");
-                        callback.sendMessage(callback.obtainMessage(0));
+                        if(size < Constants.CHUNK_SIZE){
+                            Log.i("Net", "Writine the file");
+                            // Generating file dir
+                            File path = params[0].app.getFilesDir();
+                            File file = new File(path, "scene_cache.glb");
+
+                            if (writeScene(file, fileStream.toByteArray())) {
+                                Log.i("Net", "Send msg to callback");
+                                callback.sendMessage(callback.obtainMessage(0));
+
+                                link.close();
+                                ctx.close();
+
+                                return "Done";
+                            }
+
+                            break; // Last chunk received; exit
+                        }
+                    }
+                    else {
+                        Log.i("Net", "Nothing");
+                        break;
+
                     }
 
-                } else {
-                    Log.i("Net", "Nothing");
-
-                    callback.sendMessage(callback.obtainMessage(1));
                 }
+
+                callback.sendMessage(callback.obtainMessage(1));
+
+
+
+
+//                items.poll(25000);
+//                if (items.pollin(0)) {
+//
+//                    // Read raw data
+//                    Log.i("Net", "recv something");
+//                    ZMsg answer =  ZMsg.recvMsg(link);
+//                    byte[] raw_data = answer.getLast().getData();
+
+
+
+//                } else {
+//                    Log.i("Net", "Nothing");
+//
+//                    callback.sendMessage(callback.obtainMessage(1));
+//                }
 
                 link.close();
                 ctx.close();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
             return "Done";
