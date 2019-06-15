@@ -356,7 +356,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         if(netManager.mState == 2 && !isSceneUpdating &&  isStreamingCamera && !isRecording) {
             isRecording = true;
             recordTask = new AskCameraRecord(recordingUpdateHandler, netManager.mAddress);
-            cameraRecordTask = recordTask.execute("sdasd");
+            cameraRecordTask = recordTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,"sdasd");
         }
         else if(netManager.mState == 2 && !isSceneUpdating &&  isStreamingCamera && isRecording){
 //            recordTask.cancel(true);
@@ -372,7 +372,7 @@ public class CameraTrackingActivity extends AppCompatActivity
     public void requestSceneUpdate(View v){
         if(netManager.mState == 2 && !isSceneUpdating ) {
             setSceneUpdateStatus(2);
-            new AskSceneUpdate(sceneUpdateHandler).execute(netManager);
+            new AskSceneUpdate(sceneUpdateHandler).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,netManager);
 
 
         }

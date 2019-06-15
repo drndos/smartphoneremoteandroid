@@ -26,7 +26,7 @@ public class AskCameraRecord extends AsyncTask<String, Void, String> {
         // STEP 0: Setup net wire
         ctx = ZMQ.context(1);
         link = ctx.socket(SocketType.DEALER);
-        String identity = "AskScene";
+        String identity = "AskCamera";
         link.setIdentity(identity.getBytes(ZMQ.CHARSET));
         link.setImmediate(true);
         link.connect(String.format("tcp://%s:%d",address,5559));

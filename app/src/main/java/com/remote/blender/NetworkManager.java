@@ -3,6 +3,7 @@ package com.remote.blender;
 import android.content.Context;
 import android.content.Intent;
 import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -23,6 +24,28 @@ public class NetworkManager {
 
     public int mState = STATE_IDLE;
     public String mAddress;
+    private Handler ttlHandler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+            switch (msg.what){
+                case 0:
+                    mState = STATE_ONLINE;
+                    break;
+                case 1:
+                    mState = STATE_OFFLINE;
+                    break;
+                case 2:
+                    ttlTask.cancel(true);
+                    mState = STATE_IDLE;
+                    break;
+            }
+            netHandler.sendMessage(netHandler.obtainMessage(0,mState));
+
+            return false;
+        }
+    });
+    private AsyncStateUpdate ttl;
+    private AsyncTask ttlTask;
 
     private Handler netHandler;
     private NetworkDaemon mNetDaemon;
@@ -56,50 +79,55 @@ public class NetworkManager {
         mNetSettings = new NetworkSettings(address);
         stateHandler = new Handler();
 
-        stateRunnable = new Runnable() {
-            public void run() {
-                if (mState == STATE_IDLE){
-                    return;
-                }
-                if (mState == STATE_OFFLINE){
-                    mNetSettings.connect(mAddress);
-                }
+        ttl = new AsyncStateUpdate(ttlHandler,address);
+        ttlTask = ttl.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new String[]{"go"});
+//        stateRunnable = new Runnable() {
+//            public void run() {
+//                if (mState == STATE_IDLE){
+//                    return;
+//                }
+//                if (mState == STATE_OFFLINE){
+//                    mNetSettings.connect(mAddress);
+//                }
+//
+//                    ZMQ.Poller items = mNetSettings.ctx.poller(1);
+//                    items.register(mNetSettings.stateChannel, ZMQ.Poller.POLLIN);
+//
+//                mNetSettings.stateChannel.send(localeAddr);
+//                items.poll(mNetSettings.stateTimout);
+//                if(items.pollin(0)) {
+//                    ZMsg  msg = ZMsg.recvMsg(mNetSettings.stateChannel);
+//                    ZFrame header = msg.pop();
+//                    switch (header.getString(ZMQ.CHARSET)){
+//                        case "PING":
+//                            break;
+//                        case "SCENE":
+//                            break;
+//                        default:
+//                            break;
+//                    }
+//                    mState = STATE_ONLINE;
+//
+//
+//                }
+//                else{
+//                    mNetSettings.close();
+//                    mState = STATE_OFFLINE;
+//                }
+//                netHandler.sendMessage(netHandler.obtainMessage(0,mState));
+//                stateHandler.postDelayed(stateRunnable, 4000);
+//
+//            }
+//        };
+//
+//
+//        stateHandler.postDelayed(stateRunnable, 4000);
 
-                    ZMQ.Poller items = mNetSettings.ctx.poller(1);
-                    items.register(mNetSettings.stateChannel, ZMQ.Poller.POLLIN);
-
-                mNetSettings.stateChannel.send(localeAddr);
-                items.poll(mNetSettings.stateTimout);
-                if(items.pollin(0)) {
-                    ZMsg  msg = ZMsg.recvMsg(mNetSettings.stateChannel);
-                    ZFrame header = msg.pop();
-                    switch (header.getString(ZMQ.CHARSET)){
-                        case "PING":
-                            break;
-                        case "SCENE":
-                            break;
-                        default:
-                            break;
-                    }
-                    mState = STATE_ONLINE;
-
-
-                }
-                else{
-                    mNetSettings.close();
-                    mState = STATE_OFFLINE;
-                }
-                netHandler.sendMessage(netHandler.obtainMessage(0,mState));
-                stateHandler.postDelayed(stateRunnable, 4000);
-
-            }
-        };
-
-
-        stateHandler.postDelayed(stateRunnable, 4000);
     }
 
     public void disconnect(){
+        ttl.stop();
+
         mState = STATE_IDLE;
         netHandler.sendMessage(netHandler.obtainMessage(0,mState));
         mNetSettings.close();

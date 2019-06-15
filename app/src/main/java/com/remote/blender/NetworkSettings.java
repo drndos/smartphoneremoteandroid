@@ -28,7 +28,7 @@ public class NetworkSettings {
     }
 
     public void close(){
-        stateChannel.close();
+//        stateChannel.close();
         arChannel.close();
 
     }
@@ -36,14 +36,14 @@ public class NetworkSettings {
     public void connect(String address){
 
 
-        stateChannel = ctx.socket(SocketType.REQ);
+//        stateChannel = ctx.socket(SocketType.REQ);
 //        dccChannel = ctx.socket(SocketType.REQ);
         arChannel = ctx.socket(SocketType.PUSH);
 
 //        String id = "APP";
 //        dccChannel.setIdentity(id.getBytes(ZMQ.CHARSET));
 
-        stateChannel.connect(String.format("tcp://%s:%d",address,stateChannelPort));
+//        stateChannel.connect(String.format("tcp://%s:%d",address,stateChannelPort));
 //        dccChannel.connect(String.format("tcp://%s:%d",address,dccChannelPort));
         arChannel.connect(String.format("tcp://%s:%d",address,arChannelPort));
 
