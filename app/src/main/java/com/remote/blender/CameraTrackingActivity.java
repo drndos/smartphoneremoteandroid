@@ -7,6 +7,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
@@ -66,6 +67,7 @@ import com.google.ar.sceneform.ux.TransformableNode;
 
 import org.msgpack.core.MessageBufferPacker;
 import org.msgpack.core.MessagePack;
+import org.w3c.dom.Text;
 import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
@@ -110,6 +112,7 @@ public class CameraTrackingActivity extends AppCompatActivity
     private ModelRenderable originRenderable;
     private ProgressBar taskProgress;
     private TextView currentRecordedFrame;
+    private TextView scanMessage;
     private BarcodeDetector ipDetector;
     private SurfaceTexture text;
     private Surface mirror;
@@ -194,7 +197,6 @@ public class CameraTrackingActivity extends AppCompatActivity
             return false;
         }
     });
-
 
     private void setSceneUpdateStatus(int status){
         switch (status){
@@ -342,6 +344,7 @@ public class CameraTrackingActivity extends AppCompatActivity
     public void updateConnectButtonStatus(int status){
         switch (status){
             case 0:
+                scanMessage.setVisibility(View.VISIBLE);
                 connectButton.setImageResource(R.drawable.round_cast_white_18dp);
                 connectButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorIdle));
                 break;
@@ -352,6 +355,11 @@ public class CameraTrackingActivity extends AppCompatActivity
             case 2:
                 connectButton.setImageResource(R.drawable.round_cast_connected_white_18dp);
                 connectButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorOnline));
+                break;
+            case 3:
+                connectButton.setImageResource(R.drawable.round_cast_connected_white_18dp);
+                connectButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorWaiting));
+                scanMessage.setVisibility(View.GONE);
                 break;
         }
     }
@@ -423,10 +431,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         ipDetector =  new BarcodeDetector.Builder(getApplicationContext())
                         .setBarcodeFormats(Barcode.DATA_MATRIX | Barcode.QR_CODE)
                         .build();
-
-
-        //
-
+        scanMessage = (TextView)findViewById(R.id.scanMessage);
 
 
         // Net setup
@@ -500,21 +505,24 @@ public class CameraTrackingActivity extends AppCompatActivity
     @RequiresApi(api = Build.VERSION_CODES.P)
     @Override
     public void onUpdate(FrameTime frameTime) {
+        if(netManager.mState == 0){
+            try {
+                Image screen = null;
+                screen = arFragment.getArSceneView().getArFrame().acquireCameraImage();
 
-        try {
-            Image screen = null;
-            screen = arFragment.getArSceneView().getArFrame().acquireCameraImage();
+                Frame frame = new Frame.Builder().setImageData(screen.getPlanes()[0].getBuffer(),screen.getWidth(),screen.getHeight(), ImageFormat.NV21).build();
+                SparseArray<Barcode> barcodes = ipDetector.detect(frame);
+                if(barcodes.size()>0){
+                    Barcode thisCode = barcodes.valueAt(0);
+                    Log.i("Net",thisCode.rawValue);
+                    updateConnectButtonStatus(3);
+                    netManager.connect(thisCode.rawValue);
+                }
+                screen.close();
 
-            Frame frame = new Frame.Builder().setImageData(screen.getPlanes()[0].getBuffer(),screen.getWidth(),screen.getHeight(), ImageFormat.NV21).build();
-            SparseArray<Barcode> barcodes = ipDetector.detect(frame);
-            if(barcodes.size()>0){
-                Barcode thisCode = barcodes.valueAt(0);
-                Log.i("Net",thisCode.rawValue);
+            } catch (NotYetAvailableException e) {
+                e.printStackTrace();
             }
-            screen.close();
-
-        } catch (NotYetAvailableException e) {
-            e.printStackTrace();
         }
 
         if(sceneAnchor != null){

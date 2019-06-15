@@ -3,4 +3,5 @@
     <string name="edit_message">Server IP</string>
     <string name="button_connect">Connect</string>
     <string name="button_send_position">stream camera</string>
+    <string name="scanMessage">Scan the QR code please</string>
 </resources>
