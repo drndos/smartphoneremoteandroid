@@ -17,7 +17,7 @@ public class AsyncStateUpdate extends AsyncTask <String, Void, String>{
     private String add;
 
     public AsyncStateUpdate(Handler cb, String address) {
-        Log.i("Net","AskSTate: setup");
+
         callback = cb;
         // STEP 0: Setup net wire
         ctx = ZMQ.context(1);
@@ -73,7 +73,6 @@ public class AsyncStateUpdate extends AsyncTask <String, Void, String>{
             request.add(add);
             request.send(link);
             request.destroy();
-            Log.i("Net", "request state update");
             items.poll(2000);
 
             if (items.pollin(0)) {

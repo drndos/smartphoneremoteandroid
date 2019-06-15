@@ -7,6 +7,11 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
+import android.graphics.SurfaceTexture;
+import android.media.Image;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
@@ -14,12 +19,15 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.os.StrictMode;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.Gravity;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -30,15 +38,19 @@ import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.google.android.gms.vision.Frame;
+import com.google.android.gms.vision.barcode.Barcode;
+import com.google.android.gms.vision.barcode.BarcodeDetector;
 
 import com.example.blenderremote.R;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.Camera;
-import com.google.ar.core.Frame;
+//import com.google.ar.core.Frame.;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.core.Pose;
 import com.google.ar.core.TrackingState;
+import com.google.ar.core.exceptions.NotYetAvailableException;
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.FrameTime;
@@ -98,7 +110,9 @@ public class CameraTrackingActivity extends AppCompatActivity
     private ModelRenderable originRenderable;
     private ProgressBar taskProgress;
     private TextView currentRecordedFrame;
-
+    private BarcodeDetector ipDetector;
+    private SurfaceTexture text;
+    private Surface mirror;
 
     // Net vars
     private NetworkManager netManager;
@@ -108,24 +122,26 @@ public class CameraTrackingActivity extends AppCompatActivity
             switch (msg.what){
                 // STATE MESSAGE
                 case 0:
-                    switch ((int)msg.obj){
-                        case 0:
-                            setcameraStream(false);
+                    if(!isSceneUpdating) {
+                        switch ((int)msg.obj){
+                            case 0:
+                                setcameraStream(false);
 
-                            break;
-                        case 1:
-                            setcameraStream(false);
-                            break;
-                        case 2:
-                            if (!isSceneLoaded && !isSceneUpdating){
-                                isSceneLoaded = true;
-                                requestSceneUpdate(requireViewById(R.id.connect));
-                            }
+                                break;
+                            case 1:
+                                setcameraStream(false);
+                                break;
+                            case 2:
+                                if (!isSceneLoaded && !isSceneUpdating){
+                                    isSceneLoaded = true;
+                                    requestSceneUpdate(requireViewById(R.id.connect));
+                                }
 
-                            break;
+                                break;
+                        }
+
+                        updateConnectButtonStatus((int) msg.obj);
                     }
-                    updateConnectButtonStatus((int)msg.obj);
-
                     break;
             }
 
@@ -404,6 +420,14 @@ public class CameraTrackingActivity extends AppCompatActivity
         updateSceneButton = (ImageButton)findViewById(R.id.syncSceneButton);
         taskProgress = (ProgressBar)findViewById(R.id.taskProgress);
         currentRecordedFrame = (TextView)findViewById(R.id.currentFrame);
+        ipDetector =  new BarcodeDetector.Builder(getApplicationContext())
+                        .setBarcodeFormats(Barcode.DATA_MATRIX | Barcode.QR_CODE)
+                        .build();
+
+
+        //
+
+
 
         // Net setup
         netManager = new NetworkManager(netHandler,wifiManager,this);
@@ -473,9 +497,31 @@ public class CameraTrackingActivity extends AppCompatActivity
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.P)
     @Override
     public void onUpdate(FrameTime frameTime) {
+
+        try {
+            Image screen = null;
+            screen = arFragment.getArSceneView().getArFrame().acquireCameraImage();
+
+            Frame frame = new Frame.Builder().setImageData(screen.getPlanes()[0].getBuffer(),screen.getWidth(),screen.getHeight(), ImageFormat.NV21).build();
+            SparseArray<Barcode> barcodes = ipDetector.detect(frame);
+            if(barcodes.size()>0){
+                Barcode thisCode = barcodes.valueAt(0);
+                Log.i("Net",thisCode.rawValue);
+            }
+            screen.close();
+
+        } catch (NotYetAvailableException e) {
+            e.printStackTrace();
+        }
+
         if(sceneAnchor != null){
+
+//            Frame frame = new Frame.Builder().setImageData()
+
+
             Camera camera = arFragment.getArSceneView().getArFrame().getCamera();
 
             if (camera.getTrackingState() == TrackingState.TRACKING && isStreamingCamera) {
