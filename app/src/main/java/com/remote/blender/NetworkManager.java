@@ -48,7 +48,6 @@ public class NetworkManager {
     private AsyncTask ttlTask;
 
     private Handler netHandler;
-    private NetworkDaemon mNetDaemon;
     public NetworkSettings mNetSettings;
     public Handler stateHandler = null;
     public static Runnable stateRunnable = null;

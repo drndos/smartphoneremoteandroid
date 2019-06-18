@@ -7,6 +7,20 @@ allprojects {
     }
 }
 android {
+    signingConfigs {
+        debug {
+            storeFile file('D:\\s.martinez\\assets\\android\\keystores\\upload-keystore.jks')
+            storePassword 'blender.org'
+            keyPassword 'blender.org'
+            keyAlias = 'upload'
+        }
+        release {
+            storeFile file('D:\\s.martinez\\assets\\android\\keystores\\upload-keystore.jks')
+            storePassword 'blender.org'
+            keyPassword 'blender.org'
+            keyAlias = 'upload'
+        }
+    }
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.example.blenderremote"
@@ -27,6 +41,16 @@ android {
         targetCompatibility = '1.8'
     }
     buildToolsVersion = '28.0.3'
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
 }
 
 dependencies {
