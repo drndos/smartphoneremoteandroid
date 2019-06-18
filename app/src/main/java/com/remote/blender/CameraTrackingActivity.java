@@ -296,13 +296,11 @@ public class CameraTrackingActivity extends AppCompatActivity
     public void setcameraStream(boolean state){
         if(state == false){
             isStreamingCamera = false;
-            cameraStreamButton.setImageResource(R.drawable.round_videocam_off_white_18dp);
             cameraStreamButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimary));
             recordButton.setVisibility(View.GONE);
         }
         else if(netManager.mState == 2){
             isStreamingCamera = true;
-            cameraStreamButton.setImageResource(R.drawable.round_videocam_white_18dp);
             cameraStreamButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorOnline));
             recordButton.setVisibility(View.VISIBLE);
         }
