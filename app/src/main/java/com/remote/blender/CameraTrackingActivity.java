@@ -299,7 +299,7 @@ public class CameraTrackingActivity extends AppCompatActivity
             cameraStreamButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimary));
             recordButton.setVisibility(View.GONE);
         }
-        else if(netManager.mState == 2){
+        else if(netManager.mState == Constants.STATE_ONLINE){
             isStreamingCamera = true;
             cameraStreamButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorOnline));
             recordButton.setVisibility(View.VISIBLE);
@@ -475,7 +475,7 @@ public class CameraTrackingActivity extends AppCompatActivity
     @RequiresApi(api = Build.VERSION_CODES.P)
     @Override
     public void onUpdate(FrameTime frameTime) {
-        if(netManager.mState == 0){
+        if(netManager.mState == Constants.STATE_OFFLINE){
             try {
                 Image screen = null;
                 screen = arFragment.getArSceneView().getArFrame().acquireCameraImage();
@@ -496,9 +496,6 @@ public class CameraTrackingActivity extends AppCompatActivity
         }
 
         if(sceneAnchor != null){
-
-//            Frame frame = new Frame.Builder().setImageData()
-
 
             Camera camera = arFragment.getArSceneView().getArFrame().getCamera();
 
