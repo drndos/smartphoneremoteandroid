@@ -2,16 +2,12 @@ package com.remote.blender;
 
 import android.os.AsyncTask;
 import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 
 import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 
 public class AskCameraRecord extends AsyncTask<String, Void, String> {
     private Handler callback;

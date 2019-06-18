@@ -1,16 +1,11 @@
 package com.remote.blender;
 
 import android.content.Context;
-import android.content.Intent;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import org.zeromq.SocketType;
-import org.zeromq.ZFrame;
-import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
 import java.util.concurrent.ExecutorService;

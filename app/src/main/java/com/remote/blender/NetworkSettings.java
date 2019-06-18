@@ -1,11 +1,8 @@
 package com.remote.blender;
 
-import android.net.wifi.WifiManager;
 
 import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
-
-import static android.content.Context.WIFI_SERVICE;
 
 public class NetworkSettings {
     private final int stateChannelPort = 5557;

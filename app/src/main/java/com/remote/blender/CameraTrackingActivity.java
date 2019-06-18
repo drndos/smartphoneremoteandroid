@@ -3,13 +3,8 @@ package com.remote.blender;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.media.Image;
@@ -30,13 +25,9 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.View;
-import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.gms.vision.Frame;
@@ -46,44 +37,23 @@ import com.google.android.gms.vision.barcode.BarcodeDetector;
 import com.example.blenderremote.R;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.Camera;
-//import com.google.ar.core.Frame.;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
-import com.google.ar.core.Pose;
 import com.google.ar.core.TrackingState;
 import com.google.ar.core.exceptions.NotYetAvailableException;
 import com.google.ar.sceneform.AnchorNode;
-import com.google.ar.sceneform.ArSceneView;
 import com.google.ar.sceneform.FrameTime;
-import com.google.ar.sceneform.Node;
 import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.assets.RenderableSource;
-import com.google.ar.sceneform.math.Matrix;
 import com.google.ar.sceneform.math.Quaternion;
 import com.google.ar.sceneform.math.Vector3;
 import com.google.ar.sceneform.rendering.ModelRenderable;
-import com.google.ar.sceneform.rendering.Renderable;
 import com.google.ar.sceneform.ux.TransformableNode;
-
-import org.msgpack.core.MessageBufferPacker;
-import org.msgpack.core.MessagePack;
-import org.w3c.dom.Text;
-import org.zeromq.SocketType;
-import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.util.Enumeration;
+
 
 public class CameraTrackingActivity extends AppCompatActivity
         implements Scene.OnUpdateListener {
@@ -266,6 +236,7 @@ public class CameraTrackingActivity extends AppCompatActivity
                     public void onClick(DialogInterface arg0, int arg1) {
                         Log.i("Net","Trying to connect");
                         netManager.connect(input.getText().toString());
+                        updateConnectButtonStatus(3);
                     }
                 });
 
@@ -296,6 +267,7 @@ public class CameraTrackingActivity extends AppCompatActivity
                         // TODO: make a func ?
                         isSceneLoaded = false;
                         isSceneUpdating = false;
+
                     }
                 });
 

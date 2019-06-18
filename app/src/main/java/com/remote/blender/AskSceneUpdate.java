@@ -3,38 +3,15 @@ package com.remote.blender;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.util.Log;
-
-import org.msgpack.core.MessageBufferPacker;
-import org.msgpack.core.MessagePack;
-import org.msgpack.core.MessageUnpacker;
-import org.zeromq.SocketType;
-import org.zeromq.ZContext;
-import org.zeromq.ZMQ;
-import org.zeromq.ZMsg;
-
-
-import android.os.AsyncTask;
-import android.os.Handler;
-
-import android.os.Handler;
-import android.os.Bundle;
-import android.os.Message;
-import android.util.Log;
-
 import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
-import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
+
 
 public class AskSceneUpdate  extends AsyncTask<NetworkManager, Void, String> {
         private Handler callback;
