@@ -75,48 +75,6 @@ public class NetworkManager {
 
         ttl = new AsyncStateUpdate(ttlHandler,address);
         ttlTask = ttl.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new String[]{"go"});
-//        stateRunnable = new Runnable() {
-//            public void run() {
-//                if (mState == STATE_IDLE){
-//                    return;
-//                }
-//                if (mState == STATE_OFFLINE){
-//                    mNetSettings.connect(mAddress);
-//                }
-//
-//                    ZMQ.Poller items = mNetSettings.ctx.poller(1);
-//                    items.register(mNetSettings.stateChannel, ZMQ.Poller.POLLIN);
-//
-//                mNetSettings.stateChannel.send(localeAddr);
-//                items.poll(mNetSettings.stateTimout);
-//                if(items.pollin(0)) {
-//                    ZMsg  msg = ZMsg.recvMsg(mNetSettings.stateChannel);
-//                    ZFrame header = msg.pop();
-//                    switch (header.getString(ZMQ.CHARSET)){
-//                        case "PING":
-//                            break;
-//                        case "SCENE":
-//                            break;
-//                        default:
-//                            break;
-//                    }
-//                    mState = STATE_ONLINE;
-//
-//
-//                }
-//                else{
-//                    mNetSettings.close();
-//                    mState = STATE_OFFLINE;
-//                }
-//                netHandler.sendMessage(netHandler.obtainMessage(0,mState));
-//                stateHandler.postDelayed(stateRunnable, 4000);
-//
-//            }
-//        };
-//
-//
-//        stateHandler.postDelayed(stateRunnable, 4000);
-
     }
 
     public void disconnect(){
