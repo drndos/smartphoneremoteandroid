@@ -542,6 +542,8 @@ public class CameraTrackingActivity extends AppCompatActivity
     @RequiresApi(api = Build.VERSION_CODES.P)
     @Override
     public void onUpdate(FrameTime frameTime) {
+        // QRCode detection
+        //TODO: Export the code
         if(netManager.mState == Constants.STATE_OFFLINE){
             try {
                 Image screen = null;
