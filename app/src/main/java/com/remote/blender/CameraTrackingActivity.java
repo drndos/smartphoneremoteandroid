@@ -222,6 +222,8 @@ public class CameraTrackingActivity extends AppCompatActivity
     }
 
     private void setInteractionMode(int newMode) {
+        Log.i("Net","current"+ String.valueOf(mode)+"new mode: "+ String.valueOf(newMode));
+        //Set new mode
         if(newMode != mode){
             switch (newMode) {
                 case Constants.CAMERA_MODE:
@@ -241,10 +243,14 @@ public class CameraTrackingActivity extends AppCompatActivity
 
             mode = newMode;
         }
+        //Start selected mode
         else{
             switch (newMode) {
                 case Constants.CAMERA_MODE:
                     setcameraStream(true);
+                    break;
+                case Constants.OBJECT_MODE:
+                    setObjectStream(true);
                     break;
             }
         }
@@ -331,10 +337,6 @@ public class CameraTrackingActivity extends AppCompatActivity
             recordButton.setVisibility(View.GONE);
         }
         else if(netManager.mState == Constants.STATE_ONLINE){
-            if(mode == Constants.OBJECT_MODE){
-                mode = Constants.CAMERA_MODE;
-            }
-
             isStreamingCamera = true;
             cameraModeButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorOnline));
             recordButton.setVisibility(View.VISIBLE);
@@ -345,9 +347,25 @@ public class CameraTrackingActivity extends AppCompatActivity
         }
     }
 
-    public void setObjectStream(boolean state){
 
+    public void setObjectStream(boolean state){
+        if(state == false){
+            isStreamingObject = false;
+            objectModeButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorIdle));
+            recordButton.setVisibility(View.GONE);
+        }
+        else if(netManager.mState == Constants.STATE_ONLINE){
+            isStreamingObject = true;
+            objectModeButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorOnline));
+            recordButton.setVisibility(View.VISIBLE);
+        }
+        else{
+            Toast.makeText(CameraTrackingActivity.this,
+                    "Cannot stream object !", Toast.LENGTH_LONG).show();
+        }
     }
+
+
     public void updateConnectButtonStatus(int status){
         switch (status){
             case 0:
@@ -385,7 +403,14 @@ public class CameraTrackingActivity extends AppCompatActivity
     }
 
     public void onClickButtonObjectMode(View v){
-        setInteractionMode(Constants.OBJECT_MODE);
+        if(isStreamingObject){
+
+            setObjectStream(false);
+        }
+        else{
+            setInteractionMode(Constants.OBJECT_MODE);
+        }
+
     }
 
     public void requestRecordCamera(View v){
@@ -395,7 +420,6 @@ public class CameraTrackingActivity extends AppCompatActivity
             cameraRecordTask = recordTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,"sdasd");
         }
         else if(netManager.mState == 2 && !isSceneUpdating &&  isStreamingCamera && isRecording){
-//            recordTask.cancel(true);
             recordTask.stopRecord();
             Log.i("Net","Try to stop recording");
         }
