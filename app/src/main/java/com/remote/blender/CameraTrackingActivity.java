@@ -69,13 +69,15 @@ public class CameraTrackingActivity extends AppCompatActivity
     private boolean isRecording;
     private File sceneChache;
     private boolean isStreamingCamera;
+    private boolean isStreamingObject;
     private int mode = Constants.CAMERA_MODE;
     private AskCameraRecord recordTask;
     private AsyncTask cameraRecordTask;
 
     // UI vars
     private CameraTrackingFragment arFragment;
-    private ImageButton cameraStreamButton;
+    private ImageButton cameraModeButton;
+    private ImageButton objectModeButton;
     private ImageButton connectButton;
     private ImageButton recordButton;
     private ImageButton updateSceneButton;
@@ -219,7 +221,36 @@ public class CameraTrackingActivity extends AppCompatActivity
 
     }
 
+    private void setInteractionMode(int newMode) {
+        if(newMode != mode){
+            switch (newMode) {
+                case Constants.CAMERA_MODE:
+                    setObjectStream(false);
 
+                    objectModeButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimary));
+                    cameraModeButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorIdle));
+
+                    break;
+                case Constants.OBJECT_MODE:
+                    setcameraStream(false);
+
+                    objectModeButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorIdle));
+                    cameraModeButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimary));
+                    break;
+            }
+
+            mode = newMode;
+        }
+        else{
+            switch (newMode) {
+                case Constants.CAMERA_MODE:
+                    setcameraStream(true);
+                    break;
+            }
+        }
+
+    }
+    
     public void showConnexionDialog(){
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder.setCancelable(true);
@@ -296,12 +327,16 @@ public class CameraTrackingActivity extends AppCompatActivity
     public void setcameraStream(boolean state){
         if(state == false){
             isStreamingCamera = false;
-            cameraStreamButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimary));
+            cameraModeButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorIdle));
             recordButton.setVisibility(View.GONE);
         }
         else if(netManager.mState == Constants.STATE_ONLINE){
+            if(mode == Constants.OBJECT_MODE){
+                mode = Constants.CAMERA_MODE;
+            }
+
             isStreamingCamera = true;
-            cameraStreamButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorOnline));
+            cameraModeButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorOnline));
             recordButton.setVisibility(View.VISIBLE);
         }
         else{
@@ -310,7 +345,9 @@ public class CameraTrackingActivity extends AppCompatActivity
         }
     }
 
+    public void setObjectStream(boolean state){
 
+    }
     public void updateConnectButtonStatus(int status){
         switch (status){
             case 0:
@@ -335,16 +372,21 @@ public class CameraTrackingActivity extends AppCompatActivity
     }
 
 
-    public void onClickButtoncameraStreamButton(View v)
+    public void onClickButtoncameraModeButton(View v)
     {
+
         if(isStreamingCamera){
+
             setcameraStream(false);
         }
         else{
-            setcameraStream(true);
+            setInteractionMode(Constants.CAMERA_MODE);
         }
     }
 
+    public void onClickButtonObjectMode(View v){
+        setInteractionMode(Constants.OBJECT_MODE);
+    }
 
     public void requestRecordCamera(View v){
         if(netManager.mState == 2 && !isSceneUpdating &&  isStreamingCamera && !isRecording) {
@@ -392,7 +434,8 @@ public class CameraTrackingActivity extends AppCompatActivity
         // UI Setup
         setContentView(R.layout.activity_camera_tracking);
         arFragment = (CameraTrackingFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
-        cameraStreamButton = (ImageButton)findViewById(R.id.stream_camera);
+        cameraModeButton = (ImageButton)findViewById(R.id.stream_camera);
+        objectModeButton = (ImageButton)findViewById(R.id.objectModeButton);
         connectButton = (ImageButton)findViewById(R.id.connect);
         recordButton = (ImageButton)findViewById(R.id.recordButton);
         updateSceneButton = (ImageButton)findViewById(R.id.syncSceneButton);
