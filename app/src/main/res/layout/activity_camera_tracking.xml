@@ -32,14 +32,14 @@
         app:srcCompat="@drawable/round_cast_white_18dp" />
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/stream_camera"
+        android:id="@+id/cameraModeButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:clickable="true"
         android:onClick="onClickButtoncameraModeButton"
-        app:backgroundTint="@color/colorPrimary"
+        app:backgroundTint="@color/colorIdle"
         app:layout_constraintStart_toEndOf="@+id/objectModeButton"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/round_videocam_white_18dp" />
@@ -56,21 +56,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/round_sync_white_18dp" />
-
-    <SeekBar
-        android:id="@+id/seekBar"
-        style="@android:style/Widget.Material.Light.SeekBar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:max="100"
-        android:progress="50"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/connect"
-        app:layout_constraintStart_toStartOf="parent" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/recordButton"

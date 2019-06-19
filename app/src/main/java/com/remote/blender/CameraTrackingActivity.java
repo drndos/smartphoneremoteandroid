@@ -68,9 +68,8 @@ public class CameraTrackingActivity extends AppCompatActivity
     private boolean isSceneUpdating;
     private boolean isRecording;
     private File sceneChache;
-    private boolean isStreamingCamera;
-    private boolean isStreamingObject;
-    private int mode = Constants.CAMERA_MODE;
+    private boolean isStreamingData;
+    private int interactionMode = Constants.CAMERA_MODE;
     private AskCameraRecord recordTask;
     private AsyncTask cameraRecordTask;
 
@@ -222,9 +221,9 @@ public class CameraTrackingActivity extends AppCompatActivity
     }
 
     private void setInteractionMode(int newMode) {
-        Log.i("Net","current"+ String.valueOf(mode)+"new mode: "+ String.valueOf(newMode));
-        //Set new mode
-        if(newMode != mode){
+        Log.i("Net","current"+ String.valueOf(interactionMode)+"new interactionMode: "+ String.valueOf(newMode));
+        //Set new interactionMode
+        if(newMode != interactionMode){
             switch (newMode) {
                 case Constants.CAMERA_MODE:
                     setObjectStream(false);
@@ -241,9 +240,9 @@ public class CameraTrackingActivity extends AppCompatActivity
                     break;
             }
 
-            mode = newMode;
+            interactionMode = newMode;
         }
-        //Start selected mode
+        //Start selected interactionMode
         else{
             switch (newMode) {
                 case Constants.CAMERA_MODE:
@@ -332,12 +331,12 @@ public class CameraTrackingActivity extends AppCompatActivity
 
     public void setcameraStream(boolean state){
         if(state == false){
-            isStreamingCamera = false;
+            isStreamingData = false;
             cameraModeButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorIdle));
             recordButton.setVisibility(View.GONE);
         }
         else if(netManager.mState == Constants.STATE_ONLINE){
-            isStreamingCamera = true;
+            isStreamingData = true;
             cameraModeButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorOnline));
             recordButton.setVisibility(View.VISIBLE);
         }
@@ -350,12 +349,12 @@ public class CameraTrackingActivity extends AppCompatActivity
 
     public void setObjectStream(boolean state){
         if(state == false){
-            isStreamingObject = false;
+            isStreamingData = false;
             objectModeButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorIdle));
             recordButton.setVisibility(View.GONE);
         }
         else if(netManager.mState == Constants.STATE_ONLINE){
-            isStreamingObject = true;
+            isStreamingData = true;
             objectModeButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorOnline));
             recordButton.setVisibility(View.VISIBLE);
         }
@@ -393,7 +392,7 @@ public class CameraTrackingActivity extends AppCompatActivity
     public void onClickButtoncameraModeButton(View v)
     {
 
-        if(isStreamingCamera){
+        if(isStreamingData){
 
             setcameraStream(false);
         }
@@ -403,7 +402,7 @@ public class CameraTrackingActivity extends AppCompatActivity
     }
 
     public void onClickButtonObjectMode(View v){
-        if(isStreamingObject){
+        if(isStreamingData){
 
             setObjectStream(false);
         }
@@ -414,12 +413,12 @@ public class CameraTrackingActivity extends AppCompatActivity
     }
 
     public void requestRecordCamera(View v){
-        if(netManager.mState == 2 && !isSceneUpdating &&  isStreamingCamera && !isRecording) {
+        if(netManager.mState == 2 && !isSceneUpdating &&  isStreamingData && !isRecording) {
             isRecording = true;
             recordTask = new AskCameraRecord(recordingUpdateHandler, netManager.mAddress);
             cameraRecordTask = recordTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,"sdasd");
         }
-        else if(netManager.mState == 2 && !isSceneUpdating &&  isStreamingCamera && isRecording){
+        else if(netManager.mState == 2 && !isSceneUpdating &&  isStreamingData && isRecording){
             recordTask.stopRecord();
             Log.i("Net","Try to stop recording");
         }
@@ -458,7 +457,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         // UI Setup
         setContentView(R.layout.activity_camera_tracking);
         arFragment = (CameraTrackingFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
-        cameraModeButton = (ImageButton)findViewById(R.id.stream_camera);
+        cameraModeButton = (ImageButton)findViewById(R.id.cameraModeButton);
         objectModeButton = (ImageButton)findViewById(R.id.objectModeButton);
         connectButton = (ImageButton)findViewById(R.id.connect);
         recordButton = (ImageButton)findViewById(R.id.recordButton);
@@ -568,12 +567,22 @@ public class CameraTrackingActivity extends AppCompatActivity
 
             Camera camera = arFragment.getArSceneView().getArFrame().getCamera();
 
-            if (camera.getTrackingState() == TrackingState.TRACKING && isStreamingCamera) {
+            if (camera.getTrackingState() == TrackingState.TRACKING && isStreamingData) {
+                ZMsg message_buffer = new ZMsg();
+
+                // Compose data stream information
                 try {
-                    ZMsg message_buffer = new ZMsg();
+                    Util.packTransformableNode(message_buffer, sceneTransform);
+
+                    switch (interactionMode){
+                        case Constants.CAMERA_MODE:
+                            break;
+                        case Constants.OBJECT_MODE:
+                            break;
+                    }
 
                     Util.packCamera(message_buffer,camera);
-                    Util.packTransformableNode(message_buffer, sceneTransform);
+
 
                     netManager.send_data(message_buffer);
 
