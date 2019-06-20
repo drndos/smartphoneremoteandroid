@@ -49,6 +49,22 @@ public class Util {
 	      return ;      
 	}
 
+	public static  ZMsg packArState(ZMsg message_buffer,int state){
+		message_buffer.add("AR");
+
+		switch (state){
+			case Constants.CAMERA_MODE:
+				message_buffer.add("CAMERA");
+				break;
+			case Constants.OBJECT_MODE:
+				message_buffer.add("OBJECT");
+				break;
+		}
+
+		return message_buffer;
+
+	}
+
 	public static ZMsg packTransformableNode(ZMsg message_buffer, TransformableNode node) throws IOException {
 		MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
 
