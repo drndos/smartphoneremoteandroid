@@ -50,7 +50,7 @@ public class Util {
 	}
 
 	public static  ZMsg packArState(ZMsg message_buffer,int state){
-		message_buffer.add("AR");
+		message_buffer.add("STATE");
 
 		switch (state){
 			case Constants.CAMERA_MODE:
@@ -135,6 +135,16 @@ public class Util {
 		float sqrtHalf = (float) Math.sqrt(0.5f);
 		//HEADER
 		message_buffer.add("CAMERA");
+
+		//INTRINSICS
+		float[] focalLength = camera.getImageIntrinsics().getFocalLength();
+
+		packer.packArrayHeader(focalLength.length);
+		for (float v : focalLength) {
+			packer.packFloat(v);
+		}
+		message_buffer.add(packer.toByteArray());
+		packer.clear();
 
 		// ROTATION
 		float[] rotation = {0,0,0,0};
