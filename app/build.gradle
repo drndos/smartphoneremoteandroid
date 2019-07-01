@@ -7,20 +7,6 @@ allprojects {
     }
 }
 android {
-    signingConfigs {
-        debug {
-            storeFile file('D:\\s.martinez\\assets\\android\\keystores\\upload-keystore.jks')
-            storePassword 'blender.org'
-            keyPassword 'blender.org'
-            keyAlias = 'upload'
-        }
-        release {
-            storeFile file('D:\\s.martinez\\assets\\android\\keystores\\upload-keystore.jks')
-            storePassword 'blender.org'
-            keyPassword 'blender.org'
-            keyAlias = 'upload'
-        }
-    }
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.example.blenderremote"
@@ -32,8 +18,10 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            minifyEnabled true
+        }
+        debug{
+            minifyEnabled true
         }
     }
     compileOptions {
@@ -44,9 +32,15 @@ android {
 
     buildTypes {
         release {
+            debuggable false
             minifyEnabled true
             shrinkResources true
-            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            debuggable true
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
