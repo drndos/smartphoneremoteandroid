@@ -16,14 +16,7 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
-    buildTypes {
-        release {
-            minifyEnabled true
-        }
-        debug{
-            minifyEnabled true
-        }
-    }
+    
     compileOptions {
         sourceCompatibility = '1.8'
         targetCompatibility = '1.8'
