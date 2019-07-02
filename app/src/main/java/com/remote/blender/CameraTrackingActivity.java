@@ -221,7 +221,7 @@ public class CameraTrackingActivity extends AppCompatActivity
     }
 
     private void setInteractionMode(int newMode) {
-        Log.i("Net","current"+ String.valueOf(interactionMode)+"new interactionMode: "+ String.valueOf(newMode));
+        Log.i("Net","current"+ String.valueOf(interactionMode)+" // new interactionMode: "+ String.valueOf(newMode));
         //Set new interactionMode
         if(newMode != interactionMode){
             switch (newMode) {
@@ -392,7 +392,7 @@ public class CameraTrackingActivity extends AppCompatActivity
     public void onClickButtoncameraModeButton(View v)
     {
 
-        if(isStreamingData){
+        if(isStreamingData && interactionMode == Constants.CAMERA_MODE){
 
             setcameraStream(false);
         }
@@ -402,7 +402,7 @@ public class CameraTrackingActivity extends AppCompatActivity
     }
 
     public void onClickButtonObjectMode(View v){
-        if(isStreamingData){
+        if(isStreamingData && interactionMode == Constants.OBJECT_MODE){
 
             setObjectStream(false);
         }
