@@ -25,6 +25,7 @@ public class NetworkManager {
             switch (msg.what){
                 case 0:
                     mState = STATE_ONLINE;
+                    mNetSettings.connect(mAddress);
                     break;
                 case 1:
                     mState = STATE_OFFLINE;

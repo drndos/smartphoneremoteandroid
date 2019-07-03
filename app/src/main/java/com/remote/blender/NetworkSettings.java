@@ -4,9 +4,11 @@ package com.remote.blender;
 import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
 
+import static com.remote.blender.Constants.CLIENT_PORT;
+
 public class NetworkSettings {
     private final int stateChannelPort = 5557;
-    private final int arChannelPort = 5558;
+    private final int arChannelPort = CLIENT_PORT+1;
     private final int dccChannelPort = 5559;
 
     public final int stateTimout = 2000;

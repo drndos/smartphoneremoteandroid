@@ -8,6 +8,8 @@ import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
+import static com.remote.blender.Constants.CLIENT_PORT;
+
 public class AsyncStateUpdate extends AsyncTask <String, Void, String>{
     private Handler callback;
     private ZMQ.Socket link;
@@ -26,7 +28,7 @@ public class AsyncStateUpdate extends AsyncTask <String, Void, String>{
         link.setIdentity(identity.getBytes(ZMQ.CHARSET));
         link.setImmediate(true);
         link.setLinger(0);
-        link.connect(String.format("tcp://%s:%d",address,5557));
+        link.connect(String.format("tcp://%s:%d",address,CLIENT_PORT));
 
         items = ctx.poller(1);
         items.register(link, ZMQ.Poller.POLLIN);
@@ -46,7 +48,7 @@ public class AsyncStateUpdate extends AsyncTask <String, Void, String>{
         link.setIdentity(identity.getBytes(ZMQ.CHARSET));
         link.setImmediate(true);
         link.setLinger(0);
-        link.connect(String.format("tcp://%s:%d",add,5557));
+        link.connect(String.format("tcp://%s:%d",add,CLIENT_PORT));
 
 
         items = ctx.poller(1);

@@ -25,7 +25,7 @@ public class AskCameraRecord extends AsyncTask<String, Void, String> {
         String identity = "AskCamera";
         link.setIdentity(identity.getBytes(ZMQ.CHARSET));
         link.setImmediate(true);
-        link.connect(String.format("tcp://%s:%d",address,5559));
+        link.connect(String.format("tcp://%s:%d",address,Constants.CLIENT_PORT+2));
 
         items = ctx.poller(1);
         items.register(link, ZMQ.Poller.POLLIN);

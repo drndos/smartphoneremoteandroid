@@ -9,4 +9,6 @@ public final class Constants {
     public static final int STATE_IDLE = 0;
     public static final int STATE_OFFLINE = 1;
     public static final int STATE_ONLINE = 2;
+
+    public static final int CLIENT_PORT = 5560;
 }

@@ -58,7 +58,7 @@ public class AskSceneUpdate  extends AsyncTask<NetworkManager, Void, String> {
                 String identity = "AskScene";
                 link.setIdentity(identity.getBytes(ZMQ.CHARSET));
                 link.setImmediate(true);
-                link.connect(String.format("tcp://%s:%d",params[0].mAddress,5559));
+                link.connect(String.format("tcp://%s:%d",params[0].mAddress,Constants.CLIENT_PORT+2));
 
                 Log.i("Net","AskScene: done.");
 

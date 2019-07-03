@@ -572,6 +572,8 @@ public class CameraTrackingActivity extends AppCompatActivity
 
                 // Compose data stream information
                 try {
+                    Util.packArState(message_buffer,interactionMode);
+
                     Util.packTransformableNode(message_buffer, sceneTransform);
 
                     switch (interactionMode){
