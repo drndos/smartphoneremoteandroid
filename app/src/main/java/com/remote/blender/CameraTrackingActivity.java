@@ -36,11 +36,17 @@ import com.google.android.gms.vision.barcode.BarcodeDetector;
 
 import com.example.blenderremote.R;
 import com.google.ar.core.Anchor;
+import com.google.ar.core.Session;
 import com.google.ar.core.Camera;
+import com.google.ar.core.Config;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.core.TrackingState;
 import com.google.ar.core.exceptions.NotYetAvailableException;
+import com.google.ar.core.exceptions.UnavailableApkTooOldException;
+import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
+import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
+import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.FrameTime;
 import com.google.ar.sceneform.Scene;
@@ -445,6 +451,8 @@ public class CameraTrackingActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
+
         // General setup
         WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
@@ -453,6 +461,7 @@ public class CameraTrackingActivity extends AppCompatActivity
         if (!checkIsSupportedDeviceOrFinish(this)) {
             return;
         }
+
 
         // UI Setup
         setContentView(R.layout.activity_camera_tracking);
@@ -541,10 +550,12 @@ public class CameraTrackingActivity extends AppCompatActivity
     @RequiresApi(api = Build.VERSION_CODES.P)
     @Override
     public void onUpdate(FrameTime frameTime) {
+
         // QRCode detection
         //TODO: Export the code
-        if(netManager.mState == Constants.STATE_OFFLINE){
+        if(netManager.mState == Constants.STATE_IDLE){
             try {
+
                 Image screen = null;
                 screen = arFragment.getArSceneView().getArFrame().acquireCameraImage();
 
