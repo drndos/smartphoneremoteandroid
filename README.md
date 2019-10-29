@@ -6,17 +6,8 @@
 The blender smartphone remote is an attempt to bring a free wireless spatialized controller for the masses. By using ARCore, it allows the use of human natural gesture for interactions.
 
 ## Installation
-Install smartphone remote android app.
-Install the blender addon from the preference editor.
-
-## Usage example
-
-![camera_animation](https://gitlab.com/slumber/smartphoneremote/wikis/uploads/0a83d79c7d6f59e92d4aa8885539feb2/remotelow.gif)
-![camera_record](https://gitlab.com/slumber/smartphoneremote/wikis/uploads/361e212366bc9b67230e69075b191075/recordlow.gif)
-
-## Meta
-
-Les gobelets
+1. Get the latest version [here](https://drive.google.com/file/d/1C2GWTuMQ0UfCdKyoHQ8NCAvLh-1AXkiH/view?usp=sharing)
+2. Install it to your smartphone (If you need help, check this [guide](https://www.wikihow.com/Install-APK-Files-from-a-PC-on-Android))
 
 ## Contributing
 
