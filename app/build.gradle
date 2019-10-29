@@ -52,7 +52,7 @@ dependencies {
     implementation 'org.msgpack:msgpack-core:0.8.18'
     implementation 'com.google.ar.sceneform:assets:1.12.0'
     implementation 'com.google.ar.sceneform:plugin:1.12.0'
-    implementation 'com.google.android.gms:play-services-vision:18.0.0'
+    implementation 'com.google.android.gms:play-services-vision:19.0.0'
 
 
 }
