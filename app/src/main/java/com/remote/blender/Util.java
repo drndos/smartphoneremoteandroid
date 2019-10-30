@@ -1,11 +1,14 @@
 package com.remote.blender;
 
+import android.content.Context;
+import android.hardware.camera2.CameraManager;
 import android.os.Handler;
 import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
 
 import com.google.ar.core.Camera;
+import com.google.ar.core.CameraIntrinsics;
 import com.google.ar.core.Pose;
 import com.google.ar.sceneform.math.Matrix;
 import com.google.ar.sceneform.math.Quaternion;
@@ -18,7 +21,11 @@ import org.zeromq.ZMsg;
 
 import java.io.IOException;
 
+import static android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE;
+import static android.hardware.camera2.CameraCharacteristics.SENSOR_INFO_PIXEL_ARRAY_SIZE;
+
 public class Util {
+	private static final float RADIANS_TO_DEGREES = (float) (180 / Math.PI);
 	public static final String MESSAGE_PAYLOAD_KEY = "jeromq-service-payload";
 	
 	public static char[] reverseInPlace(byte[] input){
@@ -137,12 +144,16 @@ public class Util {
 		message_buffer.add("CAMERA");
 
 		//INTRINSICS
-		float[] focalLength = camera.getImageIntrinsics().getFocalLength();
+		CameraIntrinsics intrinsics = camera.getImageIntrinsics();
+		float[] focalLength = intrinsics.getFocalLength();
+		int[] imageSize = intrinsics.getImageDimensions();
 
-		packer.packArrayHeader(focalLength.length);
-		for (float v : focalLength) {
-			packer.packFloat(v);
-		}
+		float fovX = (float) (2 * Math.atan2((double) imageSize[0], (double) (2 * focalLength[0])));
+		float fovY = (float) (2 * Math.atan2((double) imageSize[1], (double) (2 * focalLength[1])));
+
+		packer.packArrayHeader(2);
+		packer.packFloat(fovX);
+		packer.packFloat(fovY);
 		message_buffer.add(packer.toByteArray());
 		packer.clear();
 
