@@ -85,6 +85,9 @@ public class CameraTrackingActivity extends AppCompatActivity
     private int interactionMode = Constants.CAMERA_MODE;
     private AskCameraRecord recordTask;
     private AsyncTask cameraRecordTask;
+    private AskViewportStream viewportTask ;
+    private AsyncTask viewportStreamingTask;
+
 
     // UI vars
     private CameraTrackingFragment arFragment;
@@ -100,6 +103,7 @@ public class CameraTrackingActivity extends AppCompatActivity
     private BarcodeDetector ipDetector;
     private SurfaceTexture text;
     private Surface mirror;
+    private boolean isStreamingViewport;
 
     // Net vars
     private NetworkManager netManager;
@@ -176,6 +180,29 @@ public class CameraTrackingActivity extends AppCompatActivity
                     }
 
                     break;
+            }
+
+
+            return false;
+        }
+    });
+    private Handler viewportUpdateHandler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message msg) {
+
+            switch (msg.what){
+                //RECORDING
+                case 0:
+                    Log.i("Net","ASDASDS");
+                    break;
+                //STOPPED
+                case 1:
+                    Log.i("Net","ASDASDS");
+
+                    break;
+                //RECORDING UPDATE
+                case 2:
+                    Log.i("Net","ASDASDS");
             }
 
 
@@ -441,6 +468,12 @@ public class CameraTrackingActivity extends AppCompatActivity
         }
     }
 
+    public void enableViewportStream(View v){
+        if(!isStreamingViewport){
+            viewportTask= new AskViewportStream(viewportUpdateHandler, netManager.mAddress);
+            viewportStreamingTask  = viewportTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,"test");
+        }
+    }
 
     public void requestSceneUpdate(View v){
         if(netManager.mState == 2 && !isSceneUpdating ) {
