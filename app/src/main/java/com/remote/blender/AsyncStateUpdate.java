@@ -8,7 +8,6 @@ import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 
-import static com.remote.blender.Constants.CLIENT_PORT;
 
 public class AsyncStateUpdate extends AsyncTask <String, Void, String>{
     private Handler callback;
@@ -17,8 +16,9 @@ public class AsyncStateUpdate extends AsyncTask <String, Void, String>{
     private ZMQ.Poller items;
     private  boolean  is_active;
     private String add;
+    private Integer mPort;
 
-    public AsyncStateUpdate(Handler cb, String address) {
+    public AsyncStateUpdate(Handler cb, String address, Integer port) {
 
         callback = cb;
         // STEP 0: Setup net wire
@@ -28,11 +28,12 @@ public class AsyncStateUpdate extends AsyncTask <String, Void, String>{
         link.setIdentity(identity.getBytes(ZMQ.CHARSET));
         link.setImmediate(true);
         link.setLinger(0);
-        link.connect(String.format("tcp://%s:%d",address,CLIENT_PORT));
+        link.connect(String.format("tcp://%s:%d",address, port));
 
         items = ctx.poller(1);
         items.register(link, ZMQ.Poller.POLLIN);
         add = address;
+        mPort = port;
 
     }
     private void reconnect(){
@@ -48,7 +49,7 @@ public class AsyncStateUpdate extends AsyncTask <String, Void, String>{
         link.setIdentity(identity.getBytes(ZMQ.CHARSET));
         link.setImmediate(true);
         link.setLinger(0);
-        link.connect(String.format("tcp://%s:%d",add,CLIENT_PORT));
+        link.connect(String.format("tcp://%s:%d",add, mPort));
 
 
         items = ctx.poller(1);

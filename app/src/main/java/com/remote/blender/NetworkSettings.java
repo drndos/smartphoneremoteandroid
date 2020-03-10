@@ -4,47 +4,26 @@ package com.remote.blender;
 import org.zeromq.SocketType;
 import org.zeromq.ZMQ;
 
-import static com.remote.blender.Constants.CLIENT_PORT;
 
 public class NetworkSettings {
-    private final int stateChannelPort = 5557;
-    private final int arChannelPort = CLIENT_PORT+1;
-    private final int dccChannelPort = 5559;
-
-    public final int stateTimout = 2000;
-
     public ZMQ.Context ctx;
-    public ZMQ.Socket stateChannel;
     public ZMQ.Socket arChannel;
-    public ZMQ.Socket dccChannel;
-    public String localIp;
 
-    NetworkSettings(String address){
+    NetworkSettings(String address, Integer port){
         ctx = ZMQ.context(1);
 
-        connect(address);
+        connect(address, port);
 
     }
 
     public void close(){
-//        stateChannel.close();
         arChannel.close();
 
     }
 
-    public void connect(String address){
-
-
-//        stateChannel = ctx.socket(SocketType.REQ);
-//        dccChannel = ctx.socket(SocketType.REQ);
+    public void connect(String address,  Integer port){
         arChannel = ctx.socket(SocketType.PUSH);
-
-//        String id = "APP";
-//        dccChannel.setIdentity(id.getBytes(ZMQ.CHARSET));
-
-//        stateChannel.connect(String.format("tcp://%s:%d",address,stateChannelPort));
-//        dccChannel.connect(String.format("tcp://%s:%d",address,dccChannelPort));
-        arChannel.connect(String.format("tcp://%s:%d",address,arChannelPort));
+        arChannel.connect(String.format("tcp://%s:%d",address,port+1));
 
 
     }

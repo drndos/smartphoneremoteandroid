@@ -3,7 +3,6 @@ package com.remote.blender;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
-import android.app.Application;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.ImageFormat;
@@ -32,35 +31,24 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.core.content.ContextCompat;
-
 import com.google.android.gms.vision.Frame;
 import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
 
 import com.example.blenderremote.R;
 import com.google.ar.core.Anchor;
-import com.google.ar.core.Session;
 import com.google.ar.core.Camera;
-import com.google.ar.core.Config;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.core.TrackingState;
 import com.google.ar.core.exceptions.NotYetAvailableException;
-import com.google.ar.core.exceptions.UnavailableApkTooOldException;
-import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
-import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
-import com.google.ar.core.exceptions.UnavailableSdkTooOldException;
 import com.google.ar.sceneform.AnchorNode;
 import com.google.ar.sceneform.FrameTime;
 import com.google.ar.sceneform.Scene;
 import com.google.ar.sceneform.assets.RenderableSource;
 import com.google.ar.sceneform.math.Quaternion;
 import com.google.ar.sceneform.math.Vector3;
-import com.google.ar.sceneform.rendering.Color;
-import com.google.ar.sceneform.rendering.MaterialFactory;
 import com.google.ar.sceneform.rendering.ModelRenderable;
-import com.google.ar.sceneform.rendering.ShapeFactory;
 import com.google.ar.sceneform.ux.TransformableNode;
 import org.zeromq.ZMsg;
 
@@ -106,11 +94,11 @@ public class CameraTrackingActivity extends AppCompatActivity
     private Handler netHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
-            switch (msg.what){
+            switch (msg.what) {
                 // STATE MESSAGE
                 case 0:
-                    if(!isSceneUpdating) {
-                        switch ((int)msg.obj){
+                    if (!isSceneUpdating) {
+                        switch ((int) msg.obj) {
                             case 0:
                                 setcameraStream(false);
 
@@ -119,9 +107,9 @@ public class CameraTrackingActivity extends AppCompatActivity
                                 setcameraStream(false);
                                 break;
                             case 2:
-                                if (!isSceneLoaded && !isSceneUpdating){
+                                if (!isSceneLoaded && !isSceneUpdating) {
                                     isSceneLoaded = true;
-                                    requestSceneUpdate(requireViewById(R.id.connect));
+                                    requestSceneUpdate(findViewById(R.id.connect));
                                 }
 
                                 break;
@@ -429,7 +417,7 @@ public class CameraTrackingActivity extends AppCompatActivity
     public void requestRecordCamera(View v){
         if(netManager.mState == 2 && !isSceneUpdating &&  isStreamingData && !isRecording) {
             isRecording = true;
-            recordTask = new AskCameraRecord(recordingUpdateHandler, netManager.mAddress);
+            recordTask = new AskCameraRecord(recordingUpdateHandler, netManager.mAddress, netManager.mPort);
             cameraRecordTask = recordTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,"sdasd");
         }
         else if(netManager.mState == 2 && !isSceneUpdating &&  isStreamingData && isRecording){
@@ -571,8 +559,9 @@ public class CameraTrackingActivity extends AppCompatActivity
                 SparseArray<Barcode> barcodes = ipDetector.detect(frame);
                 if(barcodes.size()>0){
                     Barcode thisCode = barcodes.valueAt(0);
-                    Log.i("Net",thisCode.rawValue);
                     updateConnectButtonStatus(3);
+
+                    String[] parts = thisCode.rawValue.split(":");
                     netManager.connect(thisCode.rawValue);
                 }
                 screen.close();

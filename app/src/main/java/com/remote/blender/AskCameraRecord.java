@@ -16,7 +16,7 @@ public class AskCameraRecord extends AsyncTask<String, Void, String> {
     private ZMQ.Poller items;
     private  boolean  is_recording;
 
-    public AskCameraRecord(Handler cb, String address) {
+    public AskCameraRecord(Handler cb, String address, Integer port) {
         Log.i("Net","AskCamera: setup");
         callback = cb;
         // STEP 0: Setup net wire
@@ -25,7 +25,7 @@ public class AskCameraRecord extends AsyncTask<String, Void, String> {
         String identity = "AskCamera";
         link.setIdentity(identity.getBytes(ZMQ.CHARSET));
         link.setImmediate(true);
-        link.connect(String.format("tcp://%s:%d",address,Constants.CLIENT_PORT+2));
+        link.connect(String.format("tcp://%s:%d",address,port+2));
 
         items = ctx.poller(1);
         items.register(link, ZMQ.Poller.POLLIN);

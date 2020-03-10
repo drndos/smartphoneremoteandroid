@@ -25,7 +25,7 @@ public class NetworkManager {
             switch (msg.what){
                 case 0:
                     mState = STATE_ONLINE;
-                    mNetSettings.connect(mAddress);
+                    mNetSettings.connect(mAddress, mPort);
                     break;
                 case 1:
                     mState = STATE_OFFLINE;
@@ -52,10 +52,12 @@ public class NetworkManager {
     public ExecutorService executorService = Executors.newSingleThreadExecutor();
     private WifiManager wifi;
     private String localeAddr;
+    public Integer mPort;
     public Context app;
 
     NetworkManager(Handler handler, WifiManager w, Context app){
         wifi =w;
+        mPort= 61520;
         netHandler = handler;
         localeAddr = getLocalAddr();
         this.app = app;
@@ -68,13 +70,17 @@ public class NetworkManager {
     }
 
     public void connect(String address){
-        Log.i("Net",address);
+
         mState = STATE_OFFLINE;
-        mAddress = address;
-        mNetSettings = new NetworkSettings(address);
+
+        String[] parts = address.split(":");
+        mPort = Integer.valueOf(parts[1]);
+        mAddress = parts[0];
+        Log.i("Net","connect "+mAddress +":"+ mPort);
+        mNetSettings = new NetworkSettings(mAddress, mPort);
         stateHandler = new Handler();
 
-        ttl = new AsyncStateUpdate(ttlHandler,address);
+        ttl = new AsyncStateUpdate(ttlHandler,mAddress, mPort);
         ttlTask = ttl.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new String[]{"go"});
     }
 
