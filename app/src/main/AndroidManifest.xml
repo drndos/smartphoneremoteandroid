@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.blenderremote">
+    package="com.remote.ar">
 
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -22,20 +22,20 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity android:name="com.remote.blender.CameraTrackingActivity"
+        <meta-data
+            android:name="com.google.ar.core"
+            android:value="required" />
+        <!--
+ Indicates that app requires ARCore ("AR Required"). Causes Google
+         Play Store to download and install ARCore when the app is installed.
+        -->
+        <activity android:name="com.remote.ar.CameraTrackingActivity"
             android:configChanges="keyboardHidden|orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!--
- Indicates that app requires ARCore ("AR Required"). Causes Google
-         Play Store to download and install ARCore when the app is installed.
-        -->
-        <meta-data
-            android:name="com.google.ar.core"
-            android:value="required" />
     </application>
 
 </manifest>

@@ -1,4 +1,4 @@
-package com.remote.blender;
+package com.remote.ar;
 
 import android.os.AsyncTask;
 import android.os.Handler;

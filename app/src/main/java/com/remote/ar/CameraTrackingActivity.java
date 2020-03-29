@@ -1,4 +1,4 @@
-package com.remote.blender;
+package com.remote.ar;
 
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -35,7 +35,7 @@ import com.google.android.gms.vision.Frame;
 import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
 
-import com.example.blenderremote.R;
+import com.remote.ar.R;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.Camera;
 import com.google.ar.core.HitResult;

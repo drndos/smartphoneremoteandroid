@@ -1,4 +1,4 @@
-package com.remote.blender;
+package com.remote.ar;
 
 public final class Constants {
     private Constants (){}

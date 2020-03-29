@@ -1,4 +1,4 @@
-package com.remote.blender;
+package com.remote.ar;
 
 import com.google.ar.core.Config;
 import com.google.ar.core.Session;

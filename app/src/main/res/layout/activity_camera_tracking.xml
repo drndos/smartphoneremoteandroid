@@ -4,11 +4,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.remote.blender.CameraTrackingActivity">
+    tools:context="com.remote.ar.CameraTrackingActivity">
 
     <fragment
         android:id="@+id/ux_fragment"
-        android:name="com.remote.blender.CameraTrackingFragment"
+        android:name="com.remote.ar.CameraTrackingFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"

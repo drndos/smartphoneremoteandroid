@@ -1,4 +1,4 @@
-package com.remote.blender;
+package com.remote.ar;
 
 import android.content.Context;
 import android.net.wifi.WifiManager;
