@@ -1,22 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="com.remote.ar.CameraTrackingActivity">
 
-    <fragment
-        android:id="@+id/ux_fragment"
-        android:name="com.remote.ar.CameraTrackingFragment"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0" />
+    <android.opengl.GLSurfaceView
+        android:id="@+id/surfaceview"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_gravity="top"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/connect"
@@ -61,18 +55,13 @@
         android:id="@+id/recordButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
         android:clickable="true"
         android:onClick="requestRecordCamera"
         android:visibility="gone"
         app:backgroundTint="@color/colorPrimary"
-        app:layout_constraintBottom_toBottomOf="@+id/ux_fragment"
-        app:layout_constraintEnd_toEndOf="@+id/ux_fragment"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="@+id/ux_fragment"
-        app:layout_constraintTop_toTopOf="@+id/ux_fragment"
-        app:layout_constraintVertical_bias="1.0"
-        app:srcCompat="@drawable/round_play_arrow_white_18dp" />
+        app:srcCompat="@drawable/round_play_arrow_white_18dp"
+        tools:layout_editor_absoluteX="205dp"
+        tools:layout_editor_absoluteY="731dp" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/objectModeButton"
@@ -94,16 +83,15 @@
         style="@android:style/Widget.Material.ProgressBar.Horizontal"
         android:layout_width="202dp"
         android:layout_height="20dp"
-        android:layout_marginBottom="84dp"
         android:indeterminate="false"
         android:max="250"
         android:progress="0"
         android:progressTint="@color/colorError"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/ux_fragment"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        tools:layout_editor_absoluteY="731dp" />
 
     <TextView
         android:id="@+id/currentFrame"
@@ -123,16 +111,15 @@
         android:id="@+id/scanMessage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="88dp"
         android:text="@string/scanMessage"
         android:textAlignment="center"
         android:textColor="@color/colorAccent"
         android:textSize="30sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="@+id/ux_fragment"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.493"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        tools:layout_editor_absoluteY="602dp" />
 
     <ListView
         android:id="@+id/outliner"
@@ -146,4 +133,4 @@
         app:layout_constraintTop_toTopOf="parent" />
 
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</RelativeLayout>
