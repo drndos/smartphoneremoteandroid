@@ -1,11 +1,14 @@
 package com.remote.ar;
 
+import com.google.android.gms.vision.Frame;
+import com.google.android.gms.vision.barcode.Barcode;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Config;
 import com.google.ar.core.Point;
 import com.google.ar.core.Session;
 import com.google.ar.core.Trackable;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
+import com.google.ar.core.exceptions.NotYetAvailableException;
 import com.google.ar.core.exceptions.UnavailableApkTooOldException;
 import com.google.ar.core.exceptions.UnavailableArcoreNotInstalledException;
 import com.google.ar.core.exceptions.UnavailableDeviceNotCompatibleException;
@@ -26,7 +29,10 @@ import com.remote.common.rendering.PointCloudRenderer;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
+import android.media.Image;
+import android.net.wifi.WifiManager;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.AsyncTask;
@@ -35,9 +41,11 @@ import android.os.Message;
 
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.os.SystemClock;
 import android.text.InputType;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.View;
@@ -220,9 +228,9 @@ public class CameraTrackingActivity extends AppCompatActivity
         switch (status){
             // STATE MESSAGE
             case 0:
-                int length = (int) sceneChache.length();
-                Log.i("Net",String.valueOf(length));
-                loadScene(sceneChache);
+//                int length = (int) sceneChache.length();
+//                Log.i("Net",String.valueOf(length));
+//                loadScene(sceneChache);
                 updateSceneButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimary));
                 isSceneUpdating = false;
 
@@ -325,7 +333,9 @@ public class CameraTrackingActivity extends AppCompatActivity
                     @Override
                     public void onClick(DialogInterface arg0, int arg1) {
                         Log.i("Net","Trying to disconnect");
-                        netManager.disconnect();
+                        if(netManager != null){
+                            netManager.disconnect();
+                        }
 
                         // Reset scene vars
                         // TODO: make a func ?
@@ -440,6 +450,7 @@ public class CameraTrackingActivity extends AppCompatActivity
 
     }
 
+
     public void requestRecordCamera(View v){
         if(netManager.mState == 2 && !isSceneUpdating &&  isStreamingData && !isRecording) {
             isRecording = true;
@@ -460,8 +471,6 @@ public class CameraTrackingActivity extends AppCompatActivity
         if(netManager.mState == 2 && !isSceneUpdating ) {
             setSceneUpdateStatus(2);
             new AskSceneUpdate(sceneUpdateHandler).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,netManager);
-
-
         }
         else{
             Toast.makeText(CameraTrackingActivity.this, "Cannot request scene update now", Toast.LENGTH_LONG).show();
@@ -490,99 +499,32 @@ public class CameraTrackingActivity extends AppCompatActivity
         surfaceView.setWillNotDraw(false);
 
         installRequested = false;
+
+        // Networking
+        WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
+        // UI Setup
+        cameraModeButton = (ImageButton)findViewById(R.id.cameraModeButton);
+        objectModeButton = (ImageButton)findViewById(R.id.objectModeButton);
+        connectButton = (ImageButton)findViewById(R.id.connect);
+        recordButton = (ImageButton)findViewById(R.id.recordButton);
+        updateSceneButton = (ImageButton)findViewById(R.id.syncSceneButton);
+        taskProgress = (ProgressBar)findViewById(R.id.taskProgress);
+        currentRecordedFrame = (TextView)findViewById(R.id.currentFrame);
+        ipDetector =  new BarcodeDetector.Builder(getApplicationContext())
+                        .setBarcodeFormats(Barcode.DATA_MATRIX | Barcode.QR_CODE)
+                        .build();
+        scanMessage = (TextView)findViewById(R.id.scanMessage);
+
+        isSceneUpdating = false;
+        isSceneLoaded = false;
+        isRecording = false;
+        netManager = new NetworkManager(netHandler,wifiManager,this);
+
+
     }
-
-
-//    @RequiresApi(api = Build.VERSION_CODES.P)
-//    @Override
-//    public void onUpdate(FrameTime frameTime) {
-//
-//        // QRCode detection
-//        //TODO: Export the code
-//        if(netManager.mState == Constants.STATE_IDLE){
-//            try {
-//
-//                Image screen = null;
-//                screen = arFragment.getArSceneView().getArFrame().acquireCameraImage();
-//
-//                Frame frame = new Frame.Builder().setImageData(screen.getPlanes()[0].getBuffer(),screen.getWidth(),screen.getHeight(), ImageFormat.NV21).build();
-//                SparseArray<Barcode> barcodes = ipDetector.detect(frame);
-//                if(barcodes.size()>0){
-//                    Barcode thisCode = barcodes.valueAt(0);
-//                    updateConnectButtonStatus(3);
-//
-//                    String[] parts = thisCode.rawValue.split(":");
-//                    netManager.connect(thisCode.rawValue);
-//                }
-//                screen.close();
-//
-//            } catch (NotYetAvailableException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//
-//        if(sceneAnchor != null){
-//
-//            Camera camera = arFragment.getArSceneView().getArFrame().getCamera();
-//
-//            if (camera.getTrackingState() == TrackingState.TRACKING && isStreamingData) {
-//                ZMsg message_buffer = new ZMsg();
-//
-//                // Compose data stream information
-//                try {
-//                    Util.packArState(message_buffer,interactionMode);
-//
-//                    Util.packTransformableNode(message_buffer, sceneTransform);
-//
-//                    switch (interactionMode){
-//                        case Constants.CAMERA_MODE:
-//                            break;
-//                        case Constants.OBJECT_MODE:
-//                            break;
-//                    }
-//
-//                    Util.packCamera(message_buffer,camera);
-//
-//
-//                    netManager.send_data(message_buffer);
-//
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//
-//            }
-//        }
-//
-//    }
-//
-//    /**
-//     * Returns false and displays an error message if Sceneform can not run, true if Sceneform can run
-//     * on this device.
-//     *
-//     * <p>Sceneform requires Android N on the device as well as OpenGL 3.0 capabilities.
-//     *
-//     * <p>Finishes the activity if Sceneform can not run
-//     */
-////    public static boolean checkIsSupportedDeviceOrFinish(final Activity activity) {
-////        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-////            Log.e(TAG, "Sceneform requires Android N or later");
-////            Toast.makeText(activity, "Sceneform requires Android N or later", Toast.LENGTH_LONG).show();
-////            activity.finish();
-////            return false;
-////        }
-////        String openGlVersionString =
-////                ((ActivityManager) activity.getSystemService(Context.ACTIVITY_SERVICE))
-////                        .getDeviceConfigurationInfo()
-////                        .getGlEsVersion();
-////        if (Double.parseDouble(openGlVersionString) < MIN_OPENGL_VERSION) {
-////            Log.e(TAG, "Sceneform requires OpenGL ES 3.0 later");
-////            Toast.makeText(activity, "Sceneform requires OpenGL ES 3.0 or later", Toast.LENGTH_LONG)
-////                    .show();
-////            activity.finish();
-////            return false;
-////        }
-////        return true;
-////    }
 
     @Override
     protected void onResume() {
@@ -714,9 +656,31 @@ public class CameraTrackingActivity extends AppCompatActivity
         GLES20.glViewport(0, 0, width, height);
     }
 
+
+    public void handleBarcode(com.google.ar.core.Frame arFrame ){
+            try {
+                Image screen = null;
+
+                screen = arFrame.acquireCameraImage();
+
+                Frame frame = new Frame.Builder().setImageData(screen.getPlanes()[0].getBuffer(),screen.getWidth(),screen.getHeight(), ImageFormat.NV21).build();
+                SparseArray<Barcode> barcodes = ipDetector.detect(frame);
+                if(barcodes.size()>0){
+                    Barcode thisCode = barcodes.valueAt(0);
+//                    updateConnectButtonStatus(3);
+
+                    String[] parts = thisCode.rawValue.split(":");
+                    netManager.connect(thisCode.rawValue);
+                }
+                screen.close();
+
+            } catch (NotYetAvailableException e) {
+                e.printStackTrace();
+            }
+    }
     @Override
     public void onDrawFrame(GL10 gl) {
-// Clear screen to notify driver it should not load any pixels from previous frame.
+        // Clear screen to notify driver it should not load any pixels from previous frame.
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
         if (session == null) {
@@ -737,6 +701,10 @@ public class CameraTrackingActivity extends AppCompatActivity
 
             // Handle one tap per frame.
             handleTap(frame, camera);
+
+            if(netManager != null && netManager.mState == Constants.STATE_IDLE){
+                handleBarcode(frame);
+            }
 
             // If frame is ready, render camera preview image to the GL surface.
             backgroundRenderer.draw(frame);
@@ -789,7 +757,8 @@ public class CameraTrackingActivity extends AppCompatActivity
 
             // Visualize anchors created by touch.
             float scaleFactor = gestureHelper.scaleFactor;
-            Log.i("Net",""+scaleFactor);
+            float rotationFactor = gestureHelper.rotationFactor;
+
             for (ColoredAnchor coloredAnchor : anchors) {
                 if (coloredAnchor.anchor.getTrackingState() != TrackingState.TRACKING) {
                     continue;
@@ -799,11 +768,12 @@ public class CameraTrackingActivity extends AppCompatActivity
                 coloredAnchor.anchor.getPose().toMatrix(anchorMatrix, 0);
 
                 // Update and draw the model and its shadow.
-                virtualObject.updateModelMatrix(anchorMatrix, scaleFactor, angleInDegrees);
-                virtualObjectShadow.updateModelMatrix(anchorMatrix, scaleFactor, angleInDegrees);
+                virtualObject.updateModelMatrix(anchorMatrix, scaleFactor, rotationFactor);
+                virtualObjectShadow.updateModelMatrix(anchorMatrix, scaleFactor, rotationFactor);
                 virtualObject.draw(viewmtx, projmtx, colorCorrectionRgba, coloredAnchor.color);
                 virtualObjectShadow.draw(viewmtx, projmtx, colorCorrectionRgba, coloredAnchor.color);
             }
+
 
         } catch (Throwable t) {
             // Avoid crashing the application due to unhandled exceptions.
@@ -815,52 +785,43 @@ public class CameraTrackingActivity extends AppCompatActivity
     private void handleTap(com.google.ar.core.Frame frame, Camera camera) {
         MotionEvent tap = gestureHelper.poll();
         if (tap != null && camera.getTrackingState() == TrackingState.TRACKING) {
-            int action = tap.getAction();
-
-            switch (action){
-                case ACTION_MOVE:
-//                    Log.i("Net","Moving !");
-                    break;
-                case ACTION_UP:
-                    for (HitResult hit : frame.hitTest(tap)) {
-                        // Check if any plane was hit, and if it was hit inside the plane polygon
-                        Trackable trackable = hit.getTrackable();
-                        // Creates an anchor if a plane or an oriented point was hit.
-                        if (((trackable instanceof Plane)
-                                && ((Plane) trackable).isPoseInPolygon(hit.getHitPose())
-                                && (PlaneRenderer.calculateDistanceToPlane(hit.getHitPose(), camera.getPose()) > 0))
-                                || ((trackable instanceof Point)
-                                && (((Point) trackable).getOrientationMode()
-                                == Point.OrientationMode.ESTIMATED_SURFACE_NORMAL))) {
-                            // Hits are sorted by depth. Consider only closest hit on a plane or oriented point.
-                            // Cap the number of objects created. This avoids overloading both the
-                            // rendering system and ARCore.
-                            if (anchors.size() >= 20) {
-                                anchors.get(0).anchor.detach();
-                                anchors.remove(0);
-                            }
-
-                            // Assign a color to the object for rendering based on the trackable type
-                            // this anchor attached to. For AR_TRACKABLE_POINT, it's blue color, and
-                            // for AR_TRACKABLE_PLANE, it's green color.
-                            float[] objColor;
-                            if (trackable instanceof Point) {
-                                objColor = new float[] {66.0f, 133.0f, 244.0f, 255.0f};
-                            } else if (trackable instanceof Plane) {
-                                objColor = new float[] {139.0f, 195.0f, 74.0f, 255.0f};
-                            } else {
-                                objColor = DEFAULT_COLOR;
-                            }
-
-                            // Adding an Anchor tells ARCore that it should track this position in
-                            // space. This anchor is created on the Plane to place the 3D model
-                            // in the correct position relative both to the world and to the plane.
-                            anchors.clear();
-                            anchors.add(new ColoredAnchor(hit.createAnchor(), objColor));
-                            break;
-                        }
+            for (HitResult hit : frame.hitTest(tap)) {
+                // Check if any plane was hit, and if it was hit inside the plane polygon
+                Trackable trackable = hit.getTrackable();
+                // Creates an anchor if a plane or an oriented point was hit.
+                if (((trackable instanceof Plane)
+                        && ((Plane) trackable).isPoseInPolygon(hit.getHitPose())
+                        && (PlaneRenderer.calculateDistanceToPlane(hit.getHitPose(), camera.getPose()) > 0))
+                        || ((trackable instanceof Point)
+                        && (((Point) trackable).getOrientationMode()
+                        == Point.OrientationMode.ESTIMATED_SURFACE_NORMAL))) {
+                    // Hits are sorted by depth. Consider only closest hit on a plane or oriented point.
+                    // Cap the number of objects created. This avoids overloading both the
+                    // rendering system and ARCore.
+                    if (anchors.size() >= 20) {
+                        anchors.get(0).anchor.detach();
+                        anchors.remove(0);
                     }
+
+                    // Assign a color to the object for rendering based on the trackable type
+                    // this anchor attached to. For AR_TRACKABLE_POINT, it's blue color, and
+                    // for AR_TRACKABLE_PLANE, it's green color.
+                    float[] objColor;
+                    if (trackable instanceof Point) {
+                        objColor = new float[] {66.0f, 133.0f, 244.0f, 255.0f};
+                    } else if (trackable instanceof Plane) {
+                        objColor = new float[] {139.0f, 195.0f, 74.0f, 255.0f};
+                    } else {
+                        objColor = DEFAULT_COLOR;
+                    }
+
+                    // Adding an Anchor tells ARCore that it should track this position in
+                    // space. This anchor is created on the Plane to place the 3D model
+                    // in the correct position relative both to the world and to the plane.
+                    anchors.clear();
+                    anchors.add(new ColoredAnchor(hit.createAnchor(), objColor));
                     break;
+                }
             }
 
         }
@@ -877,56 +838,3 @@ public class CameraTrackingActivity extends AppCompatActivity
         return false;
     }
 }
-
-// ONCREATE ////////////////////////////////////////////////////////////////////////////////////////////
-
-// General setup
-//        WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
-//        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-//        StrictMode.setThreadPolicy(policy);
-
-
-
-// UI Setup
-//        setContentView(R.layout.activity_camera_tracking);
-//        arFragment = (CameraTrackingFragment) getSupportFragmentManager().findFragmentById(R.id.ux_fragment);
-//        cameraModeButton = (ImageButton)findViewById(R.id.cameraModeButton);
-//        objectModeButton = (ImageButton)findViewById(R.id.objectModeButton);
-//        connectButton = (ImageButton)findViewById(R.id.connect);
-//        recordButton = (ImageButton)findViewById(R.id.recordButton);
-//        updateSceneButton = (ImageButton)findViewById(R.id.syncSceneButton);
-//        taskProgress = (ProgressBar)findViewById(R.id.taskProgress);
-//        currentRecordedFrame = (TextView)findViewById(R.id.currentFrame);
-//        ipDetector =  new BarcodeDetector.Builder(getApplicationContext())
-//                        .setBarcodeFormats(Barcode.DATA_MATRIX | Barcode.QR_CODE)
-//                        .build();
-//        scanMessage = (TextView)findViewById(R.id.scanMessage);
-
-
-// Net setup
-//        netManager = new NetworkManager(netHandler,wifiManager,this);
-
-
-// ASSETS SETUP
-//        File path =  netManager.app.getFilesDir();
-//        sceneChache = new File(path,"scene_cache.glb");
-
-// When you build a Renderable, Sceneform loads its resources in the background while returning
-// a CompletableFuture. Call thenAccept(), handle(), or check isDone() before calling get().
-//        ModelRenderable.builder()
-//            .setSource(this, R.raw.gizmo)
-//            .build()
-//            .thenAccept(renderable -> originRenderable = renderable)
-//            .exceptionally(
-//                    throwable -> {
-//                        Toast toast =
-//                                Toast.makeText(this, "Unable to load andy renderable", Toast.LENGTH_LONG);
-//                        toast.setGravity(Gravity.CENTER, 0, 0);
-//                        toast.show();
-//                        return null;
-//                    });
-
-// AR
-//        isSceneUpdating = false;
-//        isSceneLoaded = false;
-//        isRecording = false;

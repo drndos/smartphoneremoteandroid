@@ -33,20 +33,21 @@ import java.util.concurrent.BlockingQueue;
  * Helper to detect taps using Android GestureDetector, and pass the taps between UI thread and
  * render thread.
  */
-public final class GestureHelper implements OnTouchListener , OnDoubleTapListener, OnGestureListener, OnScaleGestureListener, RotationGestureDetector.RotationListener {
-  private final GestureDetector gesture;
-  private final ScaleGestureDetector gestureScale;
-  private final RotationGestureDetector gestureRotation;
-  private final BlockingQueue<MotionEvent> queuedSingleTaps = new ArrayBlockingQueue<>(16);
-  public float scaleFactor = 1.0f;
-  private boolean inScale = false;
-//  private RotationGestureDetector rotationDetector;
+public final class GestureHelper implements OnTouchListener, OnDoubleTapListener, OnGestureListener, OnScaleGestureListener, RotationGestureDetector.RotationListener {
+    private final GestureDetector gesture;
+    private final ScaleGestureDetector gestureScale;
+    private final RotationGestureDetector gestureRotation;
+    private final BlockingQueue<MotionEvent> queuedSingleTaps = new ArrayBlockingQueue<>(16);
+    public float scaleFactor = 1.0f;
+    public float rotationFactor = 1.0f;
+    public float rotation = 1.0f;
+    private boolean inScale = false;
 
-  public GestureHelper(Context c){
-      gesture = new GestureDetector(c, this);
-      gestureScale = new ScaleGestureDetector(c, this);
-      gestureRotation = new RotationGestureDetector(this);
-  }
+    public GestureHelper(Context c) {
+        gesture = new GestureDetector(c, this);
+        gestureScale = new ScaleGestureDetector(c, this);
+        gestureRotation = new RotationGestureDetector(this);
+    }
 
     public MotionEvent poll() {
         return queuedSingleTaps.poll();
@@ -57,11 +58,13 @@ public final class GestureHelper implements OnTouchListener , OnDoubleTapListene
         gesture.onTouchEvent(event);
         gestureScale.onTouchEvent(event);
         gestureRotation.onTouchEvent(event);
+
         return true;
     }
 
     @Override
     public boolean onDown(MotionEvent event) {
+
         return true;
     }
 
@@ -76,7 +79,10 @@ public final class GestureHelper implements OnTouchListener , OnDoubleTapListene
 
     @Override
     public boolean onScroll(MotionEvent event1, MotionEvent event2, float x, float y) {
-//        Log.i("Net", "SCROLL");
+        if(event2 != null && event2.getPointerCount() == 1) {
+            queuedSingleTaps.offer(event2);
+        }
+
         return true;
     }
 
@@ -86,14 +92,12 @@ public final class GestureHelper implements OnTouchListener , OnDoubleTapListene
 
     @Override
     public boolean onSingleTapUp(MotionEvent event) {
-//      Log.i("Net","SIGNLE TAP");
         queuedSingleTaps.offer(event);
         return true;
     }
 
     @Override
     public boolean onDoubleTap(MotionEvent event) {
-//        view.setVisibility(View.GONE);
         return true;
     }
 
@@ -109,18 +113,12 @@ public final class GestureHelper implements OnTouchListener , OnDoubleTapListene
 
     @Override
     public boolean onScale(ScaleGestureDetector detector) {
-      float scale = detector.getScaleFactor();
-
-      if(scale > 0.0){
-//          Log.i("Net","SCALE:"+scale);
-      }
-//
+        float scale = detector.getScaleFactor();
         scaleFactor *= detector.getScaleFactor();
 
-        scaleFactor = Math.max(0.05f, Math.min(5.0f, scaleFactor)); // prevent our image from becoming too small
-//        scaleFactor = (float) (int) (scaleFactor * 100) / 100; // Change precision to help with jitter when user just rests their fingers //
+        scaleFactor = Math.max(0.05f, Math.min(5.0f, scaleFactor));
 
-//        onScroll(null, null, 0, 0); // call scroll to make sure our bounds are still ok //
+        onScroll(null, null, 0, 0); // call scroll to make sure our bounds are still ok //
         return true;
     }
 
@@ -138,8 +136,7 @@ public final class GestureHelper implements OnTouchListener , OnDoubleTapListene
 
     @Override
     public void onRotate(float deltaAngle) {
-      if(deltaAngle > 0.0) {
-//          Log.i("Net","ROTATE:"+deltaAngle);
-      }
+        rotation -= deltaAngle;
+        rotationFactor = (360.0f / 100.0f) * rotation;
     }
 }

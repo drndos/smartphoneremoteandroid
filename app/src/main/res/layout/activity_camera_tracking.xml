@@ -10,127 +10,120 @@
         android:id="@+id/surfaceview"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_gravity="top"/>
+        android:layout_gravity="top" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/connect"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:clickable="true"
-        android:onClick="onClickButtonConnexion"
-        app:backgroundTint="@color/colorIdle"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@drawable/round_cast_white_18dp" />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/cameraModeButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
-        android:clickable="true"
-        android:onClick="onClickButtoncameraModeButton"
-        app:backgroundTint="@color/colorIdle"
-        app:layout_constraintStart_toEndOf="@+id/objectModeButton"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/round_videocam_white_18dp" />
+        <TextView
+            android:id="@+id/currentFrame"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:text="0"
+            android:textColor="@color/colorError"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@+id/taskProgress"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/syncSceneButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:clickable="true"
-        android:onClick="requestSceneUpdate"
-        app:backgroundTint="@color/colorPrimary"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/round_sync_white_18dp" />
+        <ProgressBar
+            android:id="@+id/taskProgress"
+            style="@android:style/Widget.Material.ProgressBar.Horizontal"
+            android:layout_width="202dp"
+            android:layout_height="20dp"
+            android:indeterminate="false"
+            android:max="250"
+            android:progress="0"
+            android:progressTint="@color/colorError"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.497"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:layout_editor_absoluteY="731dp" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/recordButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:clickable="true"
-        android:onClick="requestRecordCamera"
-        android:visibility="gone"
-        app:backgroundTint="@color/colorPrimary"
-        app:srcCompat="@drawable/round_play_arrow_white_18dp"
-        tools:layout_editor_absoluteX="205dp"
-        tools:layout_editor_absoluteY="731dp" />
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/objectModeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:clickable="true"
+            android:onClick="onClickButtonObjectMode"
+            android:visibility="gone"
+            app:backgroundTint="@color/colorPrimary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.419"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/round_category_white_18dp" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/objectModeButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:clickable="true"
-        android:onClick="onClickButtonObjectMode"
-        android:visibility="gone"
-        app:backgroundTint="@color/colorPrimary"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.419"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/round_category_white_18dp" />
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/recordButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:onClick="requestRecordCamera"
+            android:visibility="gone"
+            app:backgroundTint="@color/colorPrimary"
+            app:srcCompat="@drawable/round_play_arrow_white_18dp"
+            tools:layout_editor_absoluteX="205dp"
+            tools:layout_editor_absoluteY="731dp" />
 
-    <ProgressBar
-        android:id="@+id/taskProgress"
-        style="@android:style/Widget.Material.ProgressBar.Horizontal"
-        android:layout_width="202dp"
-        android:layout_height="20dp"
-        android:indeterminate="false"
-        android:max="250"
-        android:progress="0"
-        android:progressTint="@color/colorError"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:layout_editor_absoluteY="731dp" />
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/syncSceneButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:clickable="true"
+            android:onClick="requestSceneUpdate"
+            app:backgroundTint="@color/colorPrimary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/round_sync_white_18dp" />
 
-    <TextView
-        android:id="@+id/currentFrame"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:text="0"
-        android:textColor="@color/colorError"
-        android:textSize="30sp"
-        android:textStyle="bold"
-        android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@+id/taskProgress"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/cameraModeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:clickable="true"
+            android:onClick="onClickButtoncameraModeButton"
+            app:backgroundTint="@color/colorIdle"
+            app:layout_constraintStart_toEndOf="@+id/objectModeButton"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/round_videocam_white_18dp" />
 
-    <TextView
-        android:id="@+id/scanMessage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/scanMessage"
-        android:textAlignment="center"
-        android:textColor="@color/colorAccent"
-        android:textSize="30sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.493"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:layout_editor_absoluteY="602dp" />
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/connect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
+            android:clickable="true"
+            android:onClick="onClickButtonConnexion"
+            app:backgroundTint="@color/colorIdle"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:srcCompat="@drawable/round_cast_white_18dp" />
 
-    <ListView
-        android:id="@+id/outliner"
-        android:layout_width="231dp"
-        android:layout_height="61dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
-        android:footerDividersEnabled="true"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        <TextView
+            android:id="@+id/scanMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="204dp"
+            android:text="@string/scanMessage"
+            android:textAlignment="center"
+            android:textColor="@color/colorAccent"
+            android:textSize="36sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@+id/connect"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 
 </RelativeLayout>
