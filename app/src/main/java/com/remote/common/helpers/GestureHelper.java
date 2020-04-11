@@ -33,16 +33,16 @@ import java.util.concurrent.BlockingQueue;
  * Helper to detect taps using Android GestureDetector, and pass the taps between UI thread and
  * render thread.
  */
-public final class TapHelper implements OnTouchListener , OnDoubleTapListener, OnGestureListener, OnScaleGestureListener, RotationGestureDetector.RotationListener {
+public final class GestureHelper implements OnTouchListener , OnDoubleTapListener, OnGestureListener, OnScaleGestureListener, RotationGestureDetector.RotationListener {
   private final GestureDetector gesture;
   private final ScaleGestureDetector gestureScale;
   private final RotationGestureDetector gestureRotation;
   private final BlockingQueue<MotionEvent> queuedSingleTaps = new ArrayBlockingQueue<>(16);
-  private float scaleFactor = 1;
+  public float scaleFactor = 1.0f;
   private boolean inScale = false;
 //  private RotationGestureDetector rotationDetector;
 
-  public TapHelper(Context c){
+  public GestureHelper(Context c){
       gesture = new GestureDetector(c, this);
       gestureScale = new ScaleGestureDetector(c, this);
       gestureRotation = new RotationGestureDetector(this);
@@ -76,6 +76,7 @@ public final class TapHelper implements OnTouchListener , OnDoubleTapListener, O
 
     @Override
     public boolean onScroll(MotionEvent event1, MotionEvent event2, float x, float y) {
+//        Log.i("Net", "SCROLL");
         return true;
     }
 
@@ -85,6 +86,8 @@ public final class TapHelper implements OnTouchListener , OnDoubleTapListener, O
 
     @Override
     public boolean onSingleTapUp(MotionEvent event) {
+//      Log.i("Net","SIGNLE TAP");
+        queuedSingleTaps.offer(event);
         return true;
     }
 
@@ -109,11 +112,12 @@ public final class TapHelper implements OnTouchListener , OnDoubleTapListener, O
       float scale = detector.getScaleFactor();
 
       if(scale > 0.0){
-          Log.i("Net","SCALE:"+scale);
+//          Log.i("Net","SCALE:"+scale);
       }
 //
-//        scaleFactor *= detector.getScaleFactor();
-//        scaleFactor = scaleFactor < 1 ? 1 : scaleFactor; // prevent our image from becoming too small
+        scaleFactor *= detector.getScaleFactor();
+
+        scaleFactor = Math.max(0.05f, Math.min(5.0f, scaleFactor)); // prevent our image from becoming too small
 //        scaleFactor = (float) (int) (scaleFactor * 100) / 100; // Change precision to help with jitter when user just rests their fingers //
 
 //        onScroll(null, null, 0, 0); // call scroll to make sure our bounds are still ok //
@@ -135,7 +139,7 @@ public final class TapHelper implements OnTouchListener , OnDoubleTapListener, O
     @Override
     public void onRotate(float deltaAngle) {
       if(deltaAngle > 0.0) {
-          Log.i("Net","ROTATE:"+deltaAngle);
+//          Log.i("Net","ROTATE:"+deltaAngle);
       }
     }
 }

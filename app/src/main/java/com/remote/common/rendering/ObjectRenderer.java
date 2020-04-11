@@ -20,6 +20,8 @@ import android.graphics.BitmapFactory;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.opengl.Matrix;
+import android.os.SystemClock;
+import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -249,13 +251,18 @@ public class ObjectRenderer {
    * @param scaleFactor A separate scaling factor to apply before the {@code modelMatrix}.
    * @see android.opengl.Matrix
    */
-  public void updateModelMatrix(float[] modelMatrix, float scaleFactor) {
+  public void updateModelMatrix(float[] modelMatrix, float scaleFactor, float angleInDegrees) {
+    // Do a complete rotation every 10 seconds.
     float[] scaleMatrix = new float[16];
+    float[] rotateMatrix = new float[16];
     Matrix.setIdentityM(scaleMatrix, 0);
+    Matrix.setIdentityM(rotateMatrix, 0);
+    Matrix.rotateM(rotateMatrix,0,angleInDegrees,0.0f,1.0f,0.0f);
     scaleMatrix[0] = scaleFactor;
     scaleMatrix[5] = scaleFactor;
     scaleMatrix[10] = scaleFactor;
-    Matrix.multiplyMM(this.modelMatrix, 0, modelMatrix, 0, scaleMatrix, 0);
+    Matrix.multiplyMM(this.modelMatrix, 0, modelMatrix, 0, rotateMatrix,0);
+    Matrix.multiplyMM(this.modelMatrix, 0, this.modelMatrix, 0, scaleMatrix, 0);
   }
 
   /**

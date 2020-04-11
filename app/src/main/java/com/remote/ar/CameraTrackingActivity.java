@@ -1,6 +1,7 @@
 package com.remote.ar;
 
 import com.google.ar.core.ArCoreApk;
+import com.google.ar.core.Config;
 import com.google.ar.core.Point;
 import com.google.ar.core.Session;
 import com.google.ar.core.Trackable;
@@ -14,40 +15,29 @@ import com.remote.common.helpers.CameraPermissionHelper;
 import com.remote.common.helpers.DisplayRotationHelper;
 import com.remote.common.helpers.FullScreenHelper;
 import com.remote.common.helpers.SnackbarHelper;
-import com.remote.common.helpers.TapHelper;
+import com.remote.common.helpers.GestureHelper;
 import com.remote.common.helpers.TrackingStateHelper;
 
 import com.remote.common.rendering.ObjectRenderer;
 import com.remote.common.rendering.PlaneRenderer;
-import com.remote.common.rendering.ShaderUtil;
 import com.remote.common.rendering.BackgroundRenderer;
 import com.remote.common.rendering.PointCloudRenderer;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
-import android.media.Image;
-import android.net.Uri;
-import android.net.wifi.WifiManager;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
-import android.os.StrictMode;
-import androidx.annotation.RequiresApi;
+
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.text.InputType;
 import android.util.Log;
-import android.util.SparseArray;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.View;
@@ -57,19 +47,14 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.vision.Frame;
-import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
 
 import com.google.ar.core.PointCloud;
-import com.remote.ar.R;
 import com.google.ar.core.Anchor;
 import com.google.ar.core.Camera;
 import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.core.TrackingState;
-import com.google.ar.core.exceptions.NotYetAvailableException;
-import org.zeromq.ZMsg;
 
 import java.io.File;
 import java.io.IOException;
@@ -95,7 +80,7 @@ public class CameraTrackingActivity extends AppCompatActivity
     private final SnackbarHelper messageSnackbarHelper = new SnackbarHelper();
     private DisplayRotationHelper displayRotationHelper;
     private final TrackingStateHelper trackingStateHelper = new TrackingStateHelper(this);
-    private TapHelper tapHelper;
+    private GestureHelper gestureHelper;
 
     private final BackgroundRenderer backgroundRenderer = new BackgroundRenderer();
     private final ObjectRenderer virtualObject = new ObjectRenderer();
@@ -493,8 +478,8 @@ public class CameraTrackingActivity extends AppCompatActivity
         displayRotationHelper = new DisplayRotationHelper(/*context=*/ this);
 
         // Set up tap listener.
-        tapHelper = new TapHelper(/*context=*/ this);
-        surfaceView.setOnTouchListener(tapHelper);
+        gestureHelper = new GestureHelper(/*context=*/ this);
+        surfaceView.setOnTouchListener(gestureHelper);
 
         // Set up renderer.
         surfaceView.setPreserveEGLContextOnPause(true);
@@ -624,6 +609,9 @@ public class CameraTrackingActivity extends AppCompatActivity
 
                 // Create the session.
                 session = new Session(/* context= */ this);
+                Config config = new Config(session);
+                config.setFocusMode(Config.FocusMode.AUTO);
+                session.configure(config);
 
             } catch (UnavailableArcoreNotInstalledException
                     | UnavailableUserDeclinedInstallationException e) {
@@ -796,8 +784,12 @@ public class CameraTrackingActivity extends AppCompatActivity
             planeRenderer.drawPlanes(
                     session.getAllTrackables(Plane.class), camera.getDisplayOrientedPose(), projmtx);
 
+            long time = SystemClock.uptimeMillis() % 10000L;
+            float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
+
             // Visualize anchors created by touch.
-            float scaleFactor = 1.0f;
+            float scaleFactor = gestureHelper.scaleFactor;
+            Log.i("Net",""+scaleFactor);
             for (ColoredAnchor coloredAnchor : anchors) {
                 if (coloredAnchor.anchor.getTrackingState() != TrackingState.TRACKING) {
                     continue;
@@ -807,8 +799,8 @@ public class CameraTrackingActivity extends AppCompatActivity
                 coloredAnchor.anchor.getPose().toMatrix(anchorMatrix, 0);
 
                 // Update and draw the model and its shadow.
-                virtualObject.updateModelMatrix(anchorMatrix, scaleFactor);
-                virtualObjectShadow.updateModelMatrix(anchorMatrix, scaleFactor);
+                virtualObject.updateModelMatrix(anchorMatrix, scaleFactor, angleInDegrees);
+                virtualObjectShadow.updateModelMatrix(anchorMatrix, scaleFactor, angleInDegrees);
                 virtualObject.draw(viewmtx, projmtx, colorCorrectionRgba, coloredAnchor.color);
                 virtualObjectShadow.draw(viewmtx, projmtx, colorCorrectionRgba, coloredAnchor.color);
             }
@@ -821,7 +813,7 @@ public class CameraTrackingActivity extends AppCompatActivity
 
     // Handle only one tap per frame, as taps are usually low frequency compared to frame rate.
     private void handleTap(com.google.ar.core.Frame frame, Camera camera) {
-        MotionEvent tap = tapHelper.poll();
+        MotionEvent tap = gestureHelper.poll();
         if (tap != null && camera.getTrackingState() == TrackingState.TRACKING) {
             int action = tap.getAction();
 
