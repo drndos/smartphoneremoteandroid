@@ -64,15 +64,17 @@ import com.google.ar.core.HitResult;
 import com.google.ar.core.Plane;
 import com.google.ar.core.TrackingState;
 
+import org.zeromq.ZMsg;
+
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.io.InputStream;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
-
-import static android.view.MotionEvent.ACTION_MOVE;
-import static android.view.MotionEvent.ACTION_UP;
 
 
 public class CameraTrackingActivity extends AppCompatActivity
@@ -98,7 +100,7 @@ public class CameraTrackingActivity extends AppCompatActivity
 
     // Temporary matrix allocated here to reduce number of allocations for each frame.
     private final float[] anchorMatrix = new float[16];
-    private static final float[] DEFAULT_COLOR = new float[] {0f, 0f, 0f, 0f};
+    private static final float[] DEFAULT_COLOR = new float[] {.9f, 0.9f, 0.9f, 0f};
 
     private static final String SEARCHING_PLANE_MESSAGE = "Searching for surfaces...";
 
@@ -113,13 +115,9 @@ public class CameraTrackingActivity extends AppCompatActivity
         }
     }
 
-    private final ArrayList<ColoredAnchor> anchors = new ArrayList<>();
-
-    //OLD
-//    private static final double MIN_OPENGL_VERSION = 3.0;
+    private ColoredAnchor sceneAnchor = null;
 
     //AR vars
-    private Anchor sceneAnchor;
     private boolean isSceneLoaded;
     private boolean isSceneUpdating;
     private boolean isRecording;
@@ -162,7 +160,11 @@ public class CameraTrackingActivity extends AppCompatActivity
                             case 2:
                                 if (!isSceneLoaded && !isSceneUpdating) {
                                     isSceneLoaded = true;
-                                    requestSceneUpdate(findViewById(R.id.connect));
+                                    try {
+                                        requestSceneUpdate(findViewById(R.id.connect));
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
                                 }
 
                                 break;
@@ -228,9 +230,11 @@ public class CameraTrackingActivity extends AppCompatActivity
         switch (status){
             // STATE MESSAGE
             case 0:
-//                int length = (int) sceneChache.length();
-//                Log.i("Net",String.valueOf(length));
-//                loadScene(sceneChache);
+                Log.i("Net", "Trigger updater");
+                int length = (int) sceneChache.length();
+                virtualObject.isModelUpdating = true;
+
+
                 updateSceneButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorPrimary));
                 isSceneUpdating = false;
 
@@ -245,13 +249,6 @@ public class CameraTrackingActivity extends AppCompatActivity
                 isSceneUpdating = true;
                 break;
         }
-    }
-
-
-    private void loadScene(File file){
-        String path = "scene_cache.gltf";
-        Log.i("Net","Load: "+  file);
-
     }
 
 
@@ -467,7 +464,7 @@ public class CameraTrackingActivity extends AppCompatActivity
     }
 
 
-    public void requestSceneUpdate(View v){
+    public void requestSceneUpdate(View v) throws IOException {
         if(netManager.mState == 2 && !isSceneUpdating ) {
             setSceneUpdateStatus(2);
             new AskSceneUpdate(sceneUpdateHandler).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,netManager);
@@ -523,6 +520,8 @@ public class CameraTrackingActivity extends AppCompatActivity
         isRecording = false;
         netManager = new NetworkManager(netHandler,wifiManager,this);
 
+        File path =  netManager.app.getFilesDir();
+        sceneChache = new File(path,"scene_cache.obj");
 
     }
 
@@ -636,12 +635,12 @@ public class CameraTrackingActivity extends AppCompatActivity
             backgroundRenderer.createOnGlThread(/*context=*/ this);
             planeRenderer.createOnGlThread(/*context=*/ this, "models/trigrid.png");
             pointCloudRenderer.createOnGlThread(/*context=*/ this);
-
-            virtualObject.createOnGlThread(/*context=*/ this, "models/andy.obj", "models/andy.png");
+            File gizmo = new File(this.getCacheDir()+"/models/gizmo.obj");
+            Log.i("Net",gizmo.getAbsolutePath());
+            virtualObject.createOnGlThread(/*context=*/ this, this.getAssets().open("models/gizmo.obj"));
             virtualObject.setMaterialProperties(0.0f, 2.0f, 0.5f, 6.0f);
 
-            virtualObjectShadow.createOnGlThread(
-                    /*context=*/ this, "models/andy_shadow.obj", "models/andy_shadow.png");
+            virtualObjectShadow.createOnGlThread( /*context=*/ this,  this.getAssets().open("models/gizmo.obj"));
             virtualObjectShadow.setBlendMode(ObjectRenderer.BlendMode.Shadow);
             virtualObjectShadow.setMaterialProperties(1.0f, 0.0f, 0.0f, 1.0f);
 
@@ -749,8 +748,7 @@ public class CameraTrackingActivity extends AppCompatActivity
             }
 
             // Visualize planes.
-            planeRenderer.drawPlanes(
-                    session.getAllTrackables(Plane.class), camera.getDisplayOrientedPose(), projmtx);
+            planeRenderer.drawPlanes(session.getAllTrackables(Plane.class), camera.getDisplayOrientedPose(), projmtx);
 
             long time = SystemClock.uptimeMillis() % 10000L;
             float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
@@ -759,21 +757,42 @@ public class CameraTrackingActivity extends AppCompatActivity
             float scaleFactor = gestureHelper.scaleFactor;
             float rotationFactor = gestureHelper.rotationFactor;
 
-            for (ColoredAnchor coloredAnchor : anchors) {
-                if (coloredAnchor.anchor.getTrackingState() != TrackingState.TRACKING) {
-                    continue;
-                }
+            // Reload obj from scene cache
+            if (virtualObject.isModelUpdating){
+                Log.i("Net","Update the model");
+                virtualObject.release();
+                virtualObject.createOnGlThread(/*context=*/ this, new FileInputStream(sceneChache.getAbsolutePath()));
+                virtualObject.setMaterialProperties(0.0f, 2.0f, 0.5f, 6.0f);
+                virtualObjectShadow.release();
+                virtualObjectShadow.createOnGlThread(/*context=*/ this, new FileInputStream(sceneChache.getAbsolutePath()));
+                virtualObjectShadow.setMaterialProperties(0.0f, 2.0f, 0.5f, 6.0f);
+                virtualObject.isModelUpdating = false;
+                return;
+            }
+
+            // Update object matrix
+            if(sceneAnchor != null && sceneAnchor.anchor.getTrackingState() == TrackingState.TRACKING) {
                 // Get the current pose of an Anchor in world space. The Anchor pose is updated
                 // during calls to session.update() as ARCore refines its estimate of the world.
-                coloredAnchor.anchor.getPose().toMatrix(anchorMatrix, 0);
+                sceneAnchor.anchor.getPose().toMatrix(anchorMatrix, 0);
 
                 // Update and draw the model and its shadow.
                 virtualObject.updateModelMatrix(anchorMatrix, scaleFactor, rotationFactor);
                 virtualObjectShadow.updateModelMatrix(anchorMatrix, scaleFactor, rotationFactor);
-                virtualObject.draw(viewmtx, projmtx, colorCorrectionRgba, coloredAnchor.color);
-                virtualObjectShadow.draw(viewmtx, projmtx, colorCorrectionRgba, coloredAnchor.color);
-            }
 
+                if (isStreamingData){
+
+                    ZMsg message_buffer = new ZMsg();
+
+                    Util.packArState(message_buffer,interactionMode);
+                    Util.packSceneAnchor(message_buffer, virtualObject.getModelMatrix());
+                    Util.packCamera(message_buffer,camera);
+                    netManager.send_data(message_buffer);
+                }
+
+                virtualObject.draw(viewmtx, projmtx, colorCorrectionRgba, sceneAnchor.color);
+                virtualObjectShadow.draw(viewmtx, projmtx, colorCorrectionRgba, sceneAnchor.color);
+            }
 
         } catch (Throwable t) {
             // Avoid crashing the application due to unhandled exceptions.
@@ -795,31 +814,11 @@ public class CameraTrackingActivity extends AppCompatActivity
                         || ((trackable instanceof Point)
                         && (((Point) trackable).getOrientationMode()
                         == Point.OrientationMode.ESTIMATED_SURFACE_NORMAL))) {
-                    // Hits are sorted by depth. Consider only closest hit on a plane or oriented point.
-                    // Cap the number of objects created. This avoids overloading both the
-                    // rendering system and ARCore.
-                    if (anchors.size() >= 20) {
-                        anchors.get(0).anchor.detach();
-                        anchors.remove(0);
-                    }
-
-                    // Assign a color to the object for rendering based on the trackable type
-                    // this anchor attached to. For AR_TRACKABLE_POINT, it's blue color, and
-                    // for AR_TRACKABLE_PLANE, it's green color.
-                    float[] objColor;
-                    if (trackable instanceof Point) {
-                        objColor = new float[] {66.0f, 133.0f, 244.0f, 255.0f};
-                    } else if (trackable instanceof Plane) {
-                        objColor = new float[] {139.0f, 195.0f, 74.0f, 255.0f};
-                    } else {
-                        objColor = DEFAULT_COLOR;
-                    }
 
                     // Adding an Anchor tells ARCore that it should track this position in
                     // space. This anchor is created on the Plane to place the 3D model
                     // in the correct position relative both to the world and to the plane.
-                    anchors.clear();
-                    anchors.add(new ColoredAnchor(hit.createAnchor(), objColor));
+                    sceneAnchor = new ColoredAnchor(hit.createAnchor(), DEFAULT_COLOR);
                     break;
                 }
             }

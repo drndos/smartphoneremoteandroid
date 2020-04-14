@@ -67,14 +67,14 @@ public class Util {
 
 	}
 
-//	public static ZMsg packTransformableNode(ZMsg message_buffer, TransformableNode node) throws IOException {
-//		MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
-//
-//
-//		float sqrtHalf = (float) Math.sqrt(0.5f);
-//		//HEADER
-//		message_buffer.add("NODE");
-//
+	public static ZMsg packSceneAnchor(ZMsg message_buffer, float[] objectMatrix) throws IOException {
+		MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();
+
+
+		float sqrtHalf = (float) Math.sqrt(0.5f);
+		//HEADER
+		message_buffer.add("NODE");
+
 //		float[] rotation = {0,0,0,0};
 //		Quaternion raw_rotation = node.getWorldRotation();
 //		rotation[0] = raw_rotation.w;
@@ -114,22 +114,22 @@ public class Util {
 //		}
 //		message_buffer.add(packer.toByteArray());
 //		packer.clear();
-//
-//		//MATRIX
+
+		//MATRIX
 //		float[] world =  new float[16];
-//
+
 //		world = node.getWorldModelMatrix().data;
-//
-//		packer.packArrayHeader(world.length);
-//		for (float v : world) {
-//			packer.packFloat(v);
-//		}
-//		message_buffer.add(packer.toByteArray());
-//
-//		packer.close();
-//		return message_buffer;
-//
-//	}
+
+		packer.packArrayHeader(objectMatrix.length);
+		for (float v : objectMatrix) {
+			packer.packFloat(v);
+		}
+		message_buffer.add(packer.toByteArray());
+
+		packer.close();
+		return message_buffer;
+
+	}
 
 	public static ZMsg packCamera(ZMsg message_buffer,Camera camera) throws IOException {
 		MessageBufferPacker packer = MessagePack.newDefaultBufferPacker();

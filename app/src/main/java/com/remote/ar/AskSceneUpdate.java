@@ -95,7 +95,7 @@ public class AskSceneUpdate  extends AsyncTask<NetworkManager, Void, String> {
                             Log.i("Net", "Writine the file");
                             // Generating file dir
                             File path = params[0].app.getFilesDir();
-                            File file = new File(path, "scene_cache.glb");
+                            File file = new File(path, "scene_cache.obj");
 
                             if (writeScene(file, fileStream.toByteArray())) {
                                 Log.i("Net", "Send msg to callback");
@@ -119,26 +119,6 @@ public class AskSceneUpdate  extends AsyncTask<NetworkManager, Void, String> {
                 }
 
                 callback.sendMessage(callback.obtainMessage(1));
-
-
-
-
-//                items.poll(25000);
-//                if (items.pollin(0)) {
-//
-//                    // Read raw data
-//                    Log.i("Net", "recv something");
-//                    ZMsg answer =  ZMsg.recvMsg(link);
-//                    byte[] raw_data = answer.getLast().getData();
-
-
-
-//                } else {
-//                    Log.i("Net", "Nothing");
-//
-//                    callback.sendMessage(callback.obtainMessage(1));
-//                }
-
                 link.close();
                 ctx.close();
             } catch (IOException e) {
