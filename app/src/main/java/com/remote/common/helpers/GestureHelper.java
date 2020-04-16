@@ -15,7 +15,7 @@
 package com.remote.common.helpers;
 
 import android.content.Context;
-import android.util.Log;
+import android.os.SystemClock;
 import android.view.GestureDetector;
 import android.view.GestureDetector.OnDoubleTapListener;
 import android.view.MotionEvent;
@@ -37,16 +37,22 @@ public final class GestureHelper implements OnTouchListener, OnDoubleTapListener
     private final GestureDetector gesture;
     private final ScaleGestureDetector gestureScale;
     private final RotationGestureDetector gestureRotation;
+
     private final BlockingQueue<MotionEvent> queuedSingleTaps = new ArrayBlockingQueue<>(16);
+    private float rotation = 1.0f;
+    private final int scrollFequency = 32;
+    private boolean inScale = false;
+    private long lastScrollUpdate = 0;
+
     public float scaleFactor = 1.0f;
     public float rotationFactor = 1.0f;
-    public float rotation = 1.0f;
-    private boolean inScale = false;
 
     public GestureHelper(Context c) {
         gesture = new GestureDetector(c, this);
         gestureScale = new ScaleGestureDetector(c, this);
         gestureRotation = new RotationGestureDetector(this);
+
+        lastScrollUpdate = SystemClock.uptimeMillis();
     }
 
     public MotionEvent poll() {
@@ -79,8 +85,13 @@ public final class GestureHelper implements OnTouchListener, OnDoubleTapListener
 
     @Override
     public boolean onScroll(MotionEvent event1, MotionEvent event2, float x, float y) {
+
         if(event2 != null && event2.getPointerCount() == 1) {
-            queuedSingleTaps.offer(event2);
+            if(SystemClock.uptimeMillis()- lastScrollUpdate > scrollFequency){
+                queuedSingleTaps.offer(event2);
+                lastScrollUpdate = SystemClock.uptimeMillis();
+            }
+
         }
 
         return true;

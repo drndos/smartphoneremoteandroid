@@ -152,36 +152,6 @@ public class Util {
 		message_buffer.add(packer.toByteArray());
 		packer.clear();
 
-		// ROTATION
-		float[] rotation = {0,0,0,0};
-		float[] raw_rotation = camera.getDisplayOrientedPose().getRotationQuaternion();
-		rotation[0] = raw_rotation[3];
-		rotation[1] = raw_rotation[0];
-		rotation[2] = raw_rotation[1];
-		rotation[3] = raw_rotation[2];
-
-		packer.packArrayHeader(rotation.length);
-		for (float v : rotation) {
-			packer.packFloat(v);
-		}
-		message_buffer.add(packer.toByteArray());
-		packer.clear();
-
-		// TRANSLATION
-		float[] translation = {0,0,0};
-		float[] raw_translation = camera.getDisplayOrientedPose().getTranslation();
-
-		translation[0] = raw_translation[0];
-		translation[1] = raw_translation[2];
-		translation[2] = raw_translation[1];
-
-		packer.packArrayHeader(translation.length);
-		for (float v : translation) {
-			packer.packFloat(v);
-		}
-		message_buffer.add(packer.toByteArray());
-		packer.clear();
-
 		//MATRIX
 		float[] projection =  new float[16];
 		camera.getDisplayOrientedPose().toMatrix(projection,0);

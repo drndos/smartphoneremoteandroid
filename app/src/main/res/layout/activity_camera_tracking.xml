@@ -14,7 +14,25 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        app:layout_constraintEnd_toStartOf="@+id/taskProgress"
+        app:layout_constraintStart_toStartOf="@+id/taskProgress">
+
+        <ProgressBar
+            android:id="@+id/taskProgress"
+            style="@android:style/Widget.Material.ProgressBar.Horizontal"
+            android:layout_width="202dp"
+            android:layout_height="20dp"
+            android:layout_marginBottom="105dp"
+            android:indeterminate="false"
+            android:max="250"
+            android:progress="0"
+            android:progressTint="@color/colorError"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.497"
+            app:layout_constraintStart_toStartOf="parent" />
 
         <TextView
             android:id="@+id/currentFrame"
@@ -29,21 +47,6 @@
             app:layout_constraintBottom_toTopOf="@+id/taskProgress"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
-
-        <ProgressBar
-            android:id="@+id/taskProgress"
-            style="@android:style/Widget.Material.ProgressBar.Horizontal"
-            android:layout_width="202dp"
-            android:layout_height="20dp"
-            android:indeterminate="false"
-            android:max="250"
-            android:progress="0"
-            android:progressTint="@color/colorError"
-            android:visibility="gone"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.497"
-            app:layout_constraintStart_toStartOf="parent"
-            tools:layout_editor_absoluteY="731dp" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/objectModeButton"
@@ -64,13 +67,15 @@
             android:id="@+id/recordButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
             android:clickable="true"
             android:onClick="requestRecordCamera"
             android:visibility="gone"
             app:backgroundTint="@color/colorPrimary"
-            app:srcCompat="@drawable/round_play_arrow_white_18dp"
-            tools:layout_editor_absoluteX="205dp"
-            tools:layout_editor_absoluteY="731dp" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:srcCompat="@drawable/round_play_arrow_white_18dp" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/syncSceneButton"
@@ -123,6 +128,26 @@
             app:layout_constraintBottom_toTopOf="@+id/connect"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
+
+        <Spinner
+            android:id="@+id/spinner"
+            android:layout_width="409dp"
+            android:layout_height="wrap_content"
+            tools:layout_editor_absoluteX="1dp"
+            tools:layout_editor_absoluteY="259dp" />
+
+        <TextView
+            android:id="@+id/fpsCounter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="32dp"
+            android:text="fps"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textColor="@color/colorAccent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 

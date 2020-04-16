@@ -44,7 +44,7 @@ void main() {
     vec3 viewNormal = normalize(v_ViewNormal);
 
     // Flip the y-texture coordinate to address the texture from top-left.
-    vec4 objectColor = vec4(1.0f);
+    vec4 objectColor = vec4(.6f);
 
     // Apply color to grayscale image only if the alpha of u_ObjColor is
     // greater and equal to 255.0.
@@ -54,7 +54,7 @@ void main() {
     }
 
     // Apply inverse SRGB gamma to the texture before making lighting calculations.
-    objectColor.rgb = pow(objectColor.rgb, vec3(kInverseGamma));
+//    objectColor.rgb = pow(objectColor.rgb, vec3(kInverseGamma));
 
     // Ambient light is unaffected by the light intensity.
     float ambient = materialAmbient;
@@ -69,11 +69,11 @@ void main() {
     float specular = materialSpecular *
             pow(specularStrength, materialSpecularPower);
 
-    vec3 color = objectColor.rgb * (ambient + diffuse) + specular;
+    vec3 color = objectColor.rgb * (ambient + diffuse) ;//+ specular
     // Apply SRGB gamma before writing the fragment color.
     color.rgb = pow(color, vec3(kGamma));
     // Apply average pixel intensity and color shift
-    color *= colorShift * (averagePixelIntensity / kMiddleGrayGamma);
+//    color *= colorShift * (averagePixelIntensity / kMiddleGrayGamma);
     gl_FragColor.rgb = color;
     gl_FragColor.a = objectColor.a;
 }

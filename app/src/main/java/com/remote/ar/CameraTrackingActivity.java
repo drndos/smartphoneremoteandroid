@@ -37,6 +37,7 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.AsyncTask;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -101,6 +102,11 @@ public class CameraTrackingActivity extends AppCompatActivity
     // Temporary matrix allocated here to reduce number of allocations for each frame.
     private final float[] anchorMatrix = new float[16];
     private static final float[] DEFAULT_COLOR = new float[] {.9f, 0.9f, 0.9f, 0f};
+    final private long statsRefreshRate = 1000;
+    private long statsUpdateTime;
+    private long startTime;
+    private long endTime;
+    private long dt;
 
     private static final String SEARCHING_PLANE_MESSAGE = "Searching for surfaces...";
 
@@ -139,6 +145,7 @@ public class CameraTrackingActivity extends AppCompatActivity
     private BarcodeDetector ipDetector;
     private SurfaceTexture text;
     private Surface mirror;
+    private TextView fpsCounter;
 
     // Net vars
     private NetworkManager netManager;
@@ -514,6 +521,7 @@ public class CameraTrackingActivity extends AppCompatActivity
                         .setBarcodeFormats(Barcode.DATA_MATRIX | Barcode.QR_CODE)
                         .build();
         scanMessage = (TextView)findViewById(R.id.scanMessage);
+        fpsCounter = (TextView)findViewById(R.id.fpsCounter);
 
         isSceneUpdating = false;
         isSceneLoaded = false;
@@ -523,6 +531,8 @@ public class CameraTrackingActivity extends AppCompatActivity
         File path =  netManager.app.getFilesDir();
         sceneChache = new File(path,"scene_cache.obj");
 
+        startTime = System.currentTimeMillis();
+        statsUpdateTime = System.currentTimeMillis();
     }
 
     @Override
@@ -677,8 +687,31 @@ public class CameraTrackingActivity extends AppCompatActivity
                 e.printStackTrace();
             }
     }
+
+    final Handler responseHandler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+
+            /* Processing handleMessage */
+            fpsCounter.setText(dt+" ms");
+        }
+    };
+
     @Override
     public void onDrawFrame(GL10 gl) {
+        endTime = System.currentTimeMillis();
+        dt = endTime - startTime;
+
+        if ((endTime-statsUpdateTime) > statsRefreshRate){
+            Message msg = new Message();
+            msg.obj = "update stats";
+            responseHandler.sendMessage(msg);
+            statsUpdateTime = endTime;
+        }
+//        if (dt > 33)
+//            Log.i("Net","Time per frame:"+dt+" ms");
+        startTime = System.currentTimeMillis();
+
         // Clear screen to notify driver it should not load any pixels from previous frame.
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
