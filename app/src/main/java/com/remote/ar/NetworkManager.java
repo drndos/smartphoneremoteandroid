@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import org.zeromq.ZMsg;
@@ -78,7 +79,7 @@ public class NetworkManager {
         mAddress = parts[0];
         Log.i("Net","connect "+mAddress +":"+ mPort);
         mNetSettings = new NetworkSettings(mAddress, mPort);
-        stateHandler = new Handler();
+        stateHandler = new Handler(Looper.getMainLooper());
 
         ttl = new AsyncStateUpdate(ttlHandler,mAddress, mPort);
         ttlTask = ttl.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, new String[]{"go"});
