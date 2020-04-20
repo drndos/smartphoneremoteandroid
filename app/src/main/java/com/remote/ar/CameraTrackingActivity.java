@@ -5,6 +5,7 @@ import com.google.android.gms.vision.barcode.Barcode;
 import com.google.ar.core.ArCoreApk;
 import com.google.ar.core.Config;
 import com.google.ar.core.Point;
+import com.google.ar.core.Pose;
 import com.google.ar.core.Session;
 import com.google.ar.core.Trackable;
 import com.google.ar.core.exceptions.CameraNotAvailableException;
@@ -35,6 +36,7 @@ import android.media.Image;
 import android.net.wifi.WifiManager;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
+import android.opengl.Matrix;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
@@ -419,6 +421,7 @@ public class CameraTrackingActivity extends AppCompatActivity
                 connectButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorError));
                 break;
             case 2:
+                scanMessage.setVisibility(View.GONE);
                 connectButton.setImageResource(R.drawable.round_cast_connected_white_18dp);
                 connectButton.setBackgroundTintList(getResources().getColorStateList(R.color.colorOnline));
                 break;
@@ -557,6 +560,7 @@ public class CameraTrackingActivity extends AppCompatActivity
                     CameraPermissionHelper.requestCameraPermission(this);
                     return;
                 }
+
 
                 // Create the session.
                 session = new Session(/* context= */ this);
@@ -807,11 +811,13 @@ public class CameraTrackingActivity extends AppCompatActivity
             if(sceneAnchor != null && sceneAnchor.anchor.getTrackingState() == TrackingState.TRACKING) {
                 // Get the current pose of an Anchor in world space. The Anchor pose is updated
                 // during calls to session.update() as ARCore refines its estimate of the world.
-                sceneAnchor.anchor.getPose().toMatrix(anchorMatrix, 0);
+                // Remove rotation for now
 
+                sceneAnchor.anchor.getPose().extractTranslation().toMatrix(anchorMatrix, 0);
+                Matrix.rotateM(anchorMatrix,0,180,0,1,0);
                 // Update and draw the model and its shadow.
-                virtualObject.updateModelMatrix(anchorMatrix, scaleFactor, rotationFactor);
-                virtualObjectShadow.updateModelMatrix(anchorMatrix, scaleFactor, rotationFactor);
+                virtualObject.updateModelMatrix(anchorMatrix, scaleFactor, 0.0f);
+                virtualObjectShadow.updateModelMatrix(anchorMatrix, scaleFactor, 0.0f);
 
                 if (isStreamingData){
 
